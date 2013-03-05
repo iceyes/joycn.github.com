@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://joycn.github.com/sitemap.xml 
