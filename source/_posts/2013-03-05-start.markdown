@@ -1,0 +1,25 @@
+---
+layout: post
+title: "start"
+date: 2013-03-05 23:31
+comments: true
+categories: 随笔
+---
+终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。
+
+按着蔓草笔记的[在Github上搭建Octopress博客](http://xuhehuan.com/783.html)的介绍一步一步过来基本没什么问题的。
+<!-- more -->
+
+需要注意的是，在安装了git之后，需要进行相应的配置
+{% codeblock lang:bash %}
+1. 在git的安装目录下找到git bash打开
+2. 然后执行 ssh-keygen -t rsa -C "your_email@youremail.com"生成密钥
+3. 然后把 用户名.ssh\下生成的id_rsa.pub的内容copy下来
+4. 在github上的“Account Settings”>>“SSH Keys”>>“Add another key”，将刚才复制的内容粘贴到key文本框内。
+{% endcodeblock %}
+然后还要预先建立github pages
+新建repo后，根据提示，来新建pages。要不然后面即是deploy之后，访问也是会报404的..
+
+第一篇blog完全成了吐槽贴。因为windows编码是GBK的问题，在new_post的时候，老是报错。然后想，总不能每次new_post的时候输入英文名字，然后再去里面改titile。想在服务器上再搞一套这东西，后来想，因为个博客，搞套这个东西太折腾，而且使用起来也不是很方便。然后向想一个比较“优雅”的办法。于是开始把cmd的默认字符集改成了utf-8，结果发现输入法又不能输入汉字了。然后想着找bash for windows之类的东西，结果还是失败了。最后想了想，擦。最简单的方式，就是自己写个python脚本，然后把字符转化下就好了。一行代码的事情。结果搞完了，发现生成的markdown文件名居然是拼音。。擦。。这么折腾下，发现也就是方便了我不用自己手动改titile。
+
+顺便说下markdown编辑的问题，看起来很难，其实还好。写起来看起来很geek，但是由于我只是写blog，其他地方基本不会用，所以还是找个顺手的工具帮忙来定义格式之类的比较简单。markdownpad不错，但是就是对中文输入法的支持有点烂。先这么用着，有适合的再换~
