@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>start - iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。 按着蔓草笔记的在Github上搭建Octopress博客的介绍一步一步过来基本没什么问题的。 需要注意的是， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/05/start/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Start</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
+
+<p>按着蔓草笔记的<a href="http://xuhehuan.com/783.html">在Github上搭建Octopress博客</a>的介绍一步一步过来基本没什么问题的。</p>
+
+<!-- more -->
+
+
+<p>需要注意的是，在安装了git之后，需要进行相应的配置</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>1. 在git的安装目录下找到git bash打开
+</span><span class='line'>2. 然后执行 ssh-keygen -t rsa -C <span class="s2">&quot;your_email@youremail.com&quot;</span>生成密钥
+</span><span class='line'>3. 然后把 用户名.ssh<span class="se">\下</span>生成的id_rsa.pub的内容copy下来
+</span><span class='line'>4. 在github上的“Account Settings”&gt;&gt;“SSH Keys”&gt;&gt;“Add another key”，将刚才复制的内容粘贴到key文本框内。
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后还要预先建立github pages
+新建repo后，根据提示，来新建pages。要不然后面即是deploy之后，访问也是会报404的..</p>
+
+<p>第一篇blog完全成了吐槽贴。因为windows编码是GBK的问题，在new_post的时候，老是报错。然后想，总不能每次new_post的时候输入英文名字，然后再去里面改titile。想在服务器上再搞一套这东西，后来想，因为个博客，搞套这个东西太折腾，而且使用起来也不是很方便。然后向想一个比较“优雅”的办法。于是开始把cmd的默认字符集改成了utf-8，结果发现输入法又不能输入汉字了。然后想着找bash for windows之类的东西，结果还是失败了。最后想了想，擦。最简单的方式，就是自己写个python脚本，然后把字符转化下就好了。一行代码的事情。结果搞完了，发现生成的markdown文件名居然是拼音。。擦。。这么折腾下，发现也就是方便了我不用自己手动改titile。</p>
+
+<p>顺便说下markdown编辑的问题，看起来很难，其实还好。写起来看起来很geek，但是由于我只是写blog，其他地方基本不会用，所以还是找个顺手的工具帮忙来定义格式之类的比较简单。markdownpad不错，但是就是对中文输入法的支持有点烂。先这么用着，有适合的再换~</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">joycn</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/随笔/'>随笔</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://joycn.github.com/blog/2013/03/05/start/" data-via="" data-counturl="http://joycn.github.com/blog/2013/03/05/start/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/03/05/something-about-vrrp/" title="Previous Post: 关于vrrp的一点启发">&laquo; 关于vrrp的一点启发</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/05/start/">start</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
