@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 随笔 | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/随笔/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-03-10T08:58:00+08:00</updated>
+  <updated>2013-03-10T08:59:37+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[start]]></title>
     <link href="http://joycn.github.com/blog/2013/03/05/start/"/>
-    <updated>2013-03-05T23:31:00+08:00</updated>
+    <updated>2013-03-05T13:31:00+08:00</updated>
     <id>http://joycn.github.com/blog/2013/03/05/start</id>
     <content type="html"><![CDATA[<p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
 
