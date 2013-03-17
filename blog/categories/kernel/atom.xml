@@ -4,7 +4,7 @@
   <title><![CDATA[Category: kernel | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/kernel/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-03-14T23:40:17+08:00</updated>
+  <updated>2013-03-17T16:07:14+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,36 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[在使用pktgen如何利用网卡多队列功能]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/15/pktgen-multiple/"/>
+    <updated>2013-03-15T22:16:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/15/pktgen-multiple</id>
+    <content type="html"><![CDATA[<p>之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老)</p>
+
+<!-- more -->
+
+
+<p>简单说下原理,涉及到网卡发送队列的一点点内容.当pktgen的脚本设置了QUEUE_MAP_CPU这个flag后,会在构造包的时候,将当前cpu的id绑定到skb的mapqueue里,这样就实现了多队列的效果.我们在insmod的时候,pktgen会根据cpu的个数来创建同等数量的线程,主要还是因为数据发送后的一些工作比较消耗CPU,这样我们绑定后,就将tx_action分配到了本地的cpu上.
+原来我们可以通过dev_name@XX的形式来为通一个设备,加同一个设备添加到多个thread上去.比如,我们有一个eth0的多队列网卡,我们可以通过pgset "add_device eth0@1"的形式,将eth0添加到某个thread上去.所以我们就可以用下面的方式将同一个网卡绑定给多个thread.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>for ((id=0;processor&lt;$CPUS;id++))
+</span><span class='line'>do
+</span><span class='line'>PGDEV=/proc/net/pktgen/kpktgend_$id
+</span><span class='line'>pgset "add_device eth0@$processor"
+</span><span class='line'>done</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>这样我们就可以利用网卡的队列,利用多核来发包了.双路4核,关闭超线程的cpu用8599发包,差不多速率在12Mpps, 去年这时候的时候跟intel的人聊过,说82599差不多利用4个队列就能完成9M pps的发包速率,今天试了下,还真是,9+Mpps的速率.</p>
+
+<p>之前只改了自己一部分功能方面的代码,今天因为这个问题,看了下源码,里面的代码写的还是不错的.改天可以再去仔细的看下,毕竟以后估计要通过他来完成更多的工作</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[kernel中关于gso gro的一些内容]]></title>

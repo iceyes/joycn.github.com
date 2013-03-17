@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="之前在lvs利用网卡gro gso功能的时候遇到了一个bug,所以就想去了解下kernel关于gro gso的实现.简单介绍网上有一大堆,这里简单介绍下 ">
+  <meta name="description" content="之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老) ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +71,49 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-15T22:16:00+08:00" pubdate data-updated="true">Mar 15<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/15/pktgen-multiple/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老)</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/15/pktgen-multiple/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/03/14/kernel-gro-gso/">Kernel中关于gso Gro的一些内容</a></h1>
     
     
@@ -88,7 +131,9 @@
 
 
 <time datetime="2013-03-14T22:42:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="/blog/2013/03/14/kernel-gro-gso/#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -129,7 +174,9 @@
 
 
 <time datetime="2013-03-10T19:00:00+08:00" pubdate data-updated="true">Mar 10<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="/blog/2013/03/10/learning-quilt/#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -170,7 +217,9 @@
 
 
 <time datetime="2013-03-08T22:59:00+08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="/blog/2013/03/08/kernel-timer/#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -215,7 +264,9 @@
 
 
 <time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="/blog/2013/03/05/something-about-vrrp/#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -254,7 +305,9 @@
 
 
 <time datetime="2013-03-05T13:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="/blog/2013/03/05/start/#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -288,6 +341,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/03/14/kernel-gro-gso/">kernel中关于gso gro的一些内容</a>
       </li>
     
@@ -303,16 +360,12 @@
         <a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/03/05/start/">start</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/kernel/'>kernel (3)</a></li>
+    <li class='category'><a href='/blog/categories/kernel/'>kernel (4)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
@@ -322,7 +375,24 @@
 
 
 
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
 
+<!--多说js加载开始，一个页面只需要加载一次 -->
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"joycn"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script>
+<!--多说js加载结束，一个页面只需要加载一次 -->
+
+</section>
   
 </aside>
 
@@ -335,6 +405,19 @@
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 

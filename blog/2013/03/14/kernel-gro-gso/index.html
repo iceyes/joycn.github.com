@@ -85,7 +85,9 @@
 
 
 <time datetime="2013-03-14T22:42:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2013</time>
-        
+ 	
+      | <a href="#comments">Comments</a>
+     
       </p>
     
   </header>
@@ -400,11 +402,29 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
 
     </p>
     
-      <div class="sharing">
+      ﻿<div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://joycn.github.com/blog/2013/03/14/kernel-gro-gso/" data-via="" data-counturl="http://joycn.github.com/blog/2013/03/14/kernel-gro-gso/" >Tweet</a>
-  
-  
+  <script type="text/javascript" charset="utf-8">
+(function(){
+  var _w = 90 , _h = 24;
+  var param = {
+    url:location.href,
+    type:'2',
+    count:'1', /**是否显示分享数，1显示(可选)*/
+    appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
+    title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
+    pic:'', /**分享图片的路径(可选)*/
+    ralateUid:'2408658977', /**关联用户的UID，分享微博会@该用户(可选)*/
+	language:'zh_cn', /**设置语言，zh_cn|zh_tw(可选)*/
+    rnd:new Date().valueOf()
+  }
+  var temp = [];
+  for( var p in param ){
+    temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
+  }
+  document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
+})()
+</script>
   
 </div>
 
@@ -414,9 +434,29 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
         <a class="basic-alignment left" href="/blog/2013/03/10/learning-quilt/" title="Previous Post: quilt介绍">&laquo; quilt介绍</a>
       
       
+        <a class="basic-alignment right" href="/blog/2013/03/15/pktgen-multiple/" title="Next Post: 在使用pktgen如何利用网卡多队列功能">在使用pktgen如何利用网卡多队列功能 &raquo;</a>
+      
     </p>
   </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite">﻿<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"joycn"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END --></div>
+  </section>
 
 </div>
 
@@ -425,6 +465,10 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/03/14/kernel-gro-gso/">kernel中关于gso gro的一些内容</a>
@@ -442,16 +486,12 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
         <a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/03/05/start/">start</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/kernel/'>kernel (3)</a></li>
+    <li class='category'><a href='/blog/categories/kernel/'>kernel (4)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
@@ -461,7 +501,11 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
 
 
 
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
 
+</section>
   
 </aside>
 
@@ -475,6 +519,22 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/14/kernel-gro-gso/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/03/14/kernel-gro-gso/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 
