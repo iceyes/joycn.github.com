@@ -104,7 +104,15 @@
 
 <h2>硬件中断的一些内容</h2>
 
-<p>关于硬件中断的产生,这里先简单了解下.现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数时timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.后面会调到apic_timer_interrupt这个函数,这个函数涉及到local timer .然后会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
+<p>Linux启动过程中有一步是调用函数init_IRQ，作用是初始化各个中断向量。</p>
+
+<p>init_IRQ中，调用set_intr_gate(unsigned int n, void *addr)函数注册中断向量，n表示中断向量号，addr是中断响应函数的名字（地址）。</p>
+
+<p>各种跟SMP相关的中断的入口函数是基本相同的，Linux提供了BUILD_INTERRUPT(x,v)宏来完成中断入口函数的定义和中断响应函数的声明,x是中断响应函数的名字，v是中断向量号。中断入口函数名是sys_前缀加上入口函数的名字，如：apic_timer_interrupt是时钟中断响应函数，对应的入口函数是smp_apic_timer_interrupt。</p>
+
+<p>先这么介绍吧,太硬件的东西这里不深入了解了</p>
+
+<p>现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数是timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.然后SMP会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
 whether the local CPU has gone through a quiescent state and invokes
 tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再scheduler_tick减少当前进程的时间片,并且检查时间片是否已经耗光了.</p>
 
@@ -287,7 +295,7 @@ tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再sche
         <a class="basic-alignment left" href="/blog/2013/03/05/something-about-vrrp/" title="Previous Post: 关于vrrp的一点启发">&laquo; 关于vrrp的一点启发</a>
       
       
-        <a class="basic-alignment right" href="/blog/2013/03/10/learning-quilt/" title="Next Post: quilt介绍">quilt介绍 &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2013/03/10/learning-quilt/" title="Next Post: quilt&guilt介绍">quilt&guilt介绍 &raquo;</a>
       
     </p>
   </footer>
@@ -320,6 +328,14 @@ var duoshuoQuery = {short_name:"joycn"};
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/18/linux-memory-address/">linux memory address</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a>
       </li>
     
@@ -328,15 +344,7 @@ var duoshuoQuery = {short_name:"joycn"};
       </li>
     
       <li class="post">
-        <a href="/blog/2013/03/10/learning-quilt/">quilt介绍</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/03/08/kernel-timer/">有关linux kernel timer的问题</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a>
+        <a href="/blog/2013/03/10/learning-quilt/">quilt&guilt介绍</a>
       </li>
     
   </ul>
@@ -345,6 +353,8 @@ var duoshuoQuery = {short_name:"joycn"};
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/kernel/'>kernel (4)</a></li>
+<li class='category'><a href='/blog/categories/kernel-/'>kernel, (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 

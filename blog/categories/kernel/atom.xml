@@ -4,7 +4,7 @@
   <title><![CDATA[Category: kernel | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/kernel/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-03-17T16:50:04+08:00</updated>
+  <updated>2013-03-21T11:46:07+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -363,7 +363,7 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[quilt介绍]]></title>
+    <title type="html"><![CDATA[quilt&guilt介绍]]></title>
     <link href="http://joycn.github.com/blog/2013/03/10/learning-quilt/"/>
     <updated>2013-03-10T19:00:00+08:00</updated>
     <id>http://joycn.github.com/blog/2013/03/10/learning-quilt</id>
@@ -479,6 +479,8 @@ This output shows that all three patches are applied, and that the current one i
 <p>quilt also has options that will automatically email out all of the patches in the series to a group of people or a mailing list, delete specific patches in the middle of the series, go up or down the series of patches until a specific patch is found, and many more powerful options.quilt还可以帮我们把patch自动的发送email给别人.或者删除几个patch中的中间几个等其他的功能.如果我们想做kernel相关的开发,quilt是一个很好用的工具,你不用自己去diff,做patch,从而开发变得简单,就如大表哥说的,这个是提高生产力的工具.</p>
 
 <p>更多的命令还是通过man来查看吧,写的很详细</p>
+
+<p>实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下</p>
 ]]></content>
   </entry>
   
@@ -498,7 +500,15 @@ This output shows that all three patches are applied, and that the current one i
 
 <h2>硬件中断的一些内容</h2>
 
-<p>关于硬件中断的产生,这里先简单了解下.现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数时timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.后面会调到apic_timer_interrupt这个函数,这个函数涉及到local timer .然后会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
+<p>Linux启动过程中有一步是调用函数init_IRQ，作用是初始化各个中断向量。</p>
+
+<p>init_IRQ中，调用set_intr_gate(unsigned int n, void *addr)函数注册中断向量，n表示中断向量号，addr是中断响应函数的名字（地址）。</p>
+
+<p>各种跟SMP相关的中断的入口函数是基本相同的，Linux提供了BUILD_INTERRUPT(x,v)宏来完成中断入口函数的定义和中断响应函数的声明,x是中断响应函数的名字，v是中断向量号。中断入口函数名是sys_前缀加上入口函数的名字，如：apic_timer_interrupt是时钟中断响应函数，对应的入口函数是smp_apic_timer_interrupt。</p>
+
+<p>先这么介绍吧,太硬件的东西这里不深入了解了</p>
+
+<p>现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数是timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.然后SMP会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
 whether the local CPU has gone through a quiescent state and invokes
 tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再scheduler_tick减少当前进程的时间片,并且检查时间片是否已经耗光了.</p>
 
