@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>linux memory address - iCen DiaMondinG</title>
+  <title>让python webserver 能好好利用多核 - iCen DiaMondinG</title>
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/18/linux-memory-address/">
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/06/11/python-multiple-core/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -69,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">Linux Memory Address</h1>
+      <h1 class="entry-title">让python Webserver 能好好利用多核</h1>
     
     
       <p class="meta">
@@ -85,7 +84,7 @@
   
 
 
-<time datetime="2013-03-18T17:15:00+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2013</time>
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
  	
       | <a href="#comments">Comments</a>
      
@@ -94,7 +93,16 @@
   </header>
 
 
-<div class="entry-content">
+<div class="entry-content"><p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+<!-- more -->
+
+
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实自己的思路是错的,怎么滴也要先简单实际测下,看到底会有多大的损失.</p>
+
+<p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
+
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多时间没做呢,要打算写app了.算是自己视野的拓展吧.一直在底层呆着,会呆的&#8230;</p>
 </div>
 
 
@@ -117,8 +125,14 @@
   
 
 
-<time datetime="2013-03-18T17:15:00+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2013</time>
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/kernel/'>kernel</a>, <a class='category' href='/blog/categories/python/'>python</a>, <a class='category' href='/blog/categories/web/'>web</a>
+  
+</span>
 
 
     </p>
@@ -152,10 +166,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/03/15/pktgen-multiple/" title="Previous Post: 在使用pktgen如何利用网卡多队列功能">&laquo; 在使用pktgen如何利用网卡多队列功能</a>
+        <a class="basic-alignment left" href="/blog/2013/04/12/kernel-bypass/" title="Previous Post: kernel_bypass">&laquo; kernel_bypass</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/03/19/three-handshakes/" title="Next Post: linux tcp三次握手建立过程">linux tcp三次握手建立过程 &raquo;</a>
       
     </p>
   </footer>
@@ -188,11 +200,15 @@ var duoshuoQuery = {short_name:"joycn"};
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
+        <a href="/blog/2013/06/11/python-multiple-core/">让python webserver 能好好利用多核</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2013/03/18/linux-memory-address/">linux memory address</a>
+        <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
       </li>
     
       <li class="post">
@@ -203,18 +219,16 @@ var duoshuoQuery = {short_name:"joycn"};
         <a href="/blog/2013/03/14/kernel-gro-gso/">kernel中关于gso gro的一些内容</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/03/10/learning-quilt/">quilt&guilt介绍</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/kernel/'>kernel (4)</a></li>
-<li class='category'><a href='/blog/categories/kernel-/'>kernel, (1)</a></li>
+    <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (6)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
 <li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
@@ -251,8 +265,8 @@ var duoshuoQuery = {short_name:"joycn"};
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/18/linux-memory-address/';
-        var disqus_url = 'http://joycn.github.com/blog/2013/03/18/linux-memory-address/';
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/06/11/python-multiple-core/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/06/11/python-multiple-core/';
         var disqus_script = 'embed.js';
       
     (function () {

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: kernel | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/kernel/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-03-21T11:46:07+08:00</updated>
+  <updated>2013-06-12T14:49:50+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,41 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[让python webserver 能好好利用多核]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/11/python-multiple-core/"/>
+    <updated>2013-06-11T22:25:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/11/python-multiple-core</id>
+    <content type="html"><![CDATA[<p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+<!-- more -->
+
+
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实自己的思路是错的,怎么滴也要先简单实际测下,看到底会有多大的损失.</p>
+
+<p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
+
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多时间没做呢,要打算写app了.算是自己视野的拓展吧.一直在底层呆着,会呆的...</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[linux tcp三次握手建立过程]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/19/three-handshakes/"/>
+    <updated>2013-03-19T08:40:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/19/three-handshakes</id>
+    <content type="html"><![CDATA[<p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+<p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
+
+<p>tcp_v4_do_rcv首先依旧是一系列的安全检查，当通过安全检查后，对于建立连接的请求，这时sock的状态应该是listen。然后调用 tcp_v4_hnd_req对数据报进行处理。首先调用inet_csk_search_req函数，看是否已经将该请求放入了syn队列中，就是本文 最开头说的第一步是否已经做了，如果做了肯定可以找到对应的request_sock，对于刚刚请求的，肯定是找不到的，然后我们继续在建立连接的 socket队列中查找，如果是已经建立了连接的（客户端重传的syn包）还要判断当前状态是否是time_wait如果是的就返回null，不是那就换回 对应的soket，如果到这时候还没找到，那么就返回原有的sock（没有找到对应的request_sock，就是没有完成本文开始说的第一步，并且没 有对这个请求建立连接）。这时返回到了tcp_v4_do_rcv函数，一般的连接请求肯定返回的还是原来的sock，所以就会进行之后的处理 tcp_rcv_state_process。这个函数主要用来处理接受方面的状态迁移，但是不包括ESTABLISHED和TIME_WAIT。对于目 前，sock的状态肯定是listen，收到syn包，那么调用icsk->icsk_af_ops->conn_request，其实对应 调用的是tcp_v4_conn_request。首先，还是要做一些检查。tcp肯定该不会处理发向多播地址或者组播地址的syn包。通过 inet_csk_reqsk_queue_is_full检查syn queue 是否已经满了(queue->listen_opt->qlen >> queue->listen_opt->max_qlen_log)，如果满的话，同时没有打开syncookie功能的话，只能drop掉该包。然后通过sk_acceptq_is_full检查接受队列是否已经满了(sk->sk_ack_backlog > sk->sk_max_ack_backlog)，并且有没有被处理过的syn（没有收到ack并且没有发生synack重传）。 如果这样的话也会drop掉这个包。通过都没问题，当然就该分配一个新的请求连接放到syn queue中去了。这过程中主要是要根据客户端发过来的数据报中的tcp options进行对新建的request_sock进行初始化。然后调用__tcp_v4_send_synack向client发送synack，并 将这个request_sock添加到syn队列中去。</p>
+
+<p>第一步完成。当client返回ack后进行第二步：</p>
+
+<p>前面跟第一步的步骤是一样的，分叉口是在进入tcp_v4_hnd_req函数后，当调用inet_csk_search_req查找半连接，肯定是可 以查到这个连接的。然后调用tcp_check_req对这个包进行检查，首先还是进行包结构的检查，检查seq号，如果和刚才的是已建立的半连接的是相 同的，那么重新发送调用req->rsk_ops->rtx_syn_ack其实也就是tcp_v4_send_synack向请求方发送一 个synack。如果ack_seq不是期望的值，那么返回当前sock，然后在tcp_rcv_state_process中返回1，调用 tcp_v4_send_reset进行相应的处理，如果该包设置了rst包或者是本机产生的包，那么我们不做处理。如果是其他的，那么我们就发送rst 包给请求方。如果window大小跟之前有很大不同，那么调用req->rsk_ops->send_ack也就是tcp_send_ack 只是单单返回一个ack。如果包的seq和之前的是一样的，那么清除TCP_FLAG_SYN位。然后检查syn和rst标志位，如果设置了，那么还是调 用tcp_v4_send_reset进行相应的处理。检查都通过 后，inet_csk(sk)->icsk_af_ops->syn_recv_sock来新建新的连接。并从syn 队列中删除对应的syn request。将新的连接添加到sock的accept队列中去。返回到tcp_v4_do_rcv中进入tcp_child_process函数确定 没有其他用户使用该新生成的连接后，如果有的话就将该连接加入到backlog中去。调用tcp_rcv_state_process。调用tcp_ack对该包进行检查，功能后面再了解，进行检查后修改连接的状态为TCP_ESTABLISHED后对该连接进行一些另外的设置。新建完成</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[在使用pktgen如何利用网卡多队列功能]]></title>
@@ -481,192 +516,6 @@ This output shows that all three patches are applied, and that the current one i
 <p>更多的命令还是通过man来查看吧,写的很详细</p>
 
 <p>实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[有关linux kernel timer的问题]]></title>
-    <link href="http://joycn.github.com/blog/2013/03/08/kernel-timer/"/>
-    <updated>2013-03-08T22:59:00+08:00</updated>
-    <id>http://joycn.github.com/blog/2013/03/08/kernel-timer</id>
-    <content type="html"><![CDATA[<p>最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.</p>
-
-<p>于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.</p>
-
-<p>之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了</p>
-
-<!-- more -->
-
-
-<h2>硬件中断的一些内容</h2>
-
-<p>Linux启动过程中有一步是调用函数init_IRQ，作用是初始化各个中断向量。</p>
-
-<p>init_IRQ中，调用set_intr_gate(unsigned int n, void *addr)函数注册中断向量，n表示中断向量号，addr是中断响应函数的名字（地址）。</p>
-
-<p>各种跟SMP相关的中断的入口函数是基本相同的，Linux提供了BUILD_INTERRUPT(x,v)宏来完成中断入口函数的定义和中断响应函数的声明,x是中断响应函数的名字，v是中断向量号。中断入口函数名是sys_前缀加上入口函数的名字，如：apic_timer_interrupt是时钟中断响应函数，对应的入口函数是smp_apic_timer_interrupt。</p>
-
-<p>先这么介绍吧,太硬件的东西这里不深入了解了</p>
-
-<p>现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数是timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.然后SMP会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
-whether the local CPU has gone through a quiescent state and invokes
-tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再scheduler_tick减少当前进程的时间片,并且检查时间片是否已经耗光了.</p>
-
-<h2>软中断以及timer_list</h2>
-
-<p>终于到今天关注的重点了.timer_list相关的内容:</p>
-
-<p>timer_list的一些函数这里就不介绍了,用了都知道.</p>
-
-<p>里面肯定涉及到一个time时间的比较,这里我们说时刻a在时刻b之后，就意味着时间值a≥b。Linux强烈推荐用户使用它所定义的下列4个.为什么呢?因为涉及到jiffies溢出的问题,因为jiffies是一个32位的变量,所以还是很容易溢出的,当溢出了,比较起来肯定会有问题的,所以,内核就用定义了一下几个宏.其实就是类型转化成有符号long型,然后直接做比较(毕竟溢出后,负数就变成正数了,肯定比较起来没问题的,不过.溢出很多,轮一圈当然就比较不出来了.)</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define time_after(a,b) ((long)(b) - (long)(a) &lt; 0)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define time_before(a,b) time_after(b,a)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define time_after_eq(a,b) ((long)(a) - (long)(b) >= 0)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define time_before_eq(a,b) time_after_eq(b,a)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<h3>动态内核定时器机制的原理</h3>
-
-<p>Linux是怎样为其内核定时器机制提供动态扩展能力的呢？其关键就在于“定时器向量”的概念。所谓“定时器向量”就是指这样一条双向循环定时器队列（对列中的每一个元素都是一个timer_list结构）：对列中的所有定时器都在同一个时刻到期，也即对列中的每一个timer_list结构都具有相同的expires值。显然，可以用一个timer_list结构类型的指针来表示一个定时器向量。显然，定时器expires成员的值与jiffies变量的差值决定了一个定时器将在多长时间后到期。在32位系统中，这个时间差值的最大值应该是0xffffffff。因此如果是基于“定时器向量”基本定义，内核将至少要维护0xffffffff个timer_list结构类型的指针，这显然是不现实的。另一方面，从内核本身这个角度看，它所关心的定时器显然不是那些已经过期而被执行过的定时器（这些定时器完全可以被丢弃），也不是那些要经过很长时间才会到期的定时器，而是那些当前已经到期或者马上就要到期的定时器（注意！时间间隔是以滴答次数为计数单位的）。基于上述考虑，并假定一个定时器要经过interval个时钟滴答后才到期（interval＝expires－jiffies），则Linux采用了下列思想来实现其动态内核定时器机制：对于那些0≤interval≤255的定时器，Linux严格按照定时器向量的基本语义来组织这些定时器，也即Linux内核最关心那些在接下来的255个时钟节拍内就要到期的定时器，因此将它们按照各自不同的expires值组织成256个定时器向量。而对于那些256≤interval≤0xffffffff的定时器，由于他们离到期还有一段时间，因此内核并不关心他们，而是将它们以一种扩展的定时器向量语义（或称为“松散的定时器向量语义”）进行组织。所谓“松散的定时器向量语义”就是指：各定时器的expires值可以互不相同的一个定时器队列。具体的组织方案可以分为两大部分</p>
-
-<p>（1）对于内核最关心的、interval值在［0，255］之间的前256个定时器向量，内核是这样组织它们的：这256个定时器向量被组织在一起组成一个定时器向量数组，并作为数据结构timer_vec_root的一部分，该数据结构定义在kernel/timer.c文件中，如下述代码段所示：</p>
-
-<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/&lt;em>
-</span><span class='line'> * per-CPU timer vector definitions:
-</span><span class='line'> &lt;/em>/&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVN_BITS (CONFIG_BASE_SMALL ? 4 : 6)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVR_BITS (CONFIG_BASE_SMALL ? 6 : 8)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVN_SIZE (1 &lt;&lt; TVN_BITS)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVR_SIZE (1 &lt;&lt; TVR_BITS)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVN_MASK (TVN_SIZE - 1)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;h1>define TVR_MASK (TVR_SIZE - 1)&lt;/h1>
-</span><span class='line'>
-</span><span class='line'>&lt;p>struct tvec {&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>struct list_head vec[TVN_SIZE];            
-</span><span class='line'>&lt;/code>&lt;/pre>
-</span><span class='line'>
-</span><span class='line'>&lt;p>};&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>struct tvec_root {&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>struct list_head vec[TVR_SIZE];    
-</span><span class='line'>&lt;/code>&lt;/pre>
-</span><span class='line'>
-</span><span class='line'>&lt;p>};&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>struct tvec_base {&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>spinlock_t lock;
-</span><span class='line'>struct timer_list *running_timer;
-</span><span class='line'>unsigned long timer_jiffies;   
-</span><span class='line'>unsigned long next_timer; 
-</span><span class='line'>struct tvec_root tv1;     
-</span><span class='line'>struct tvec tv2;
-</span><span class='line'>struct tvec tv3;
-</span><span class='line'>struct tvec tv4;
-</span><span class='line'>struct tvec tv5;
-</span><span class='line'>&lt;/code>&lt;/pre>
-</span><span class='line'>
-</span><span class='line'>&lt;p>} ____cacheline_aligned;</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>基于数据结构timer_vec_root，Linux定义了一个全局变量tv1，以表示内核所关心的前256个定时器向量。这样内核在处理是否有到期定时器时，它就只从定时器向量数组tv1.vec［256］中的某个定时器向量内进行扫描。而tv1的index字段则指定当前正在扫描定时器向量数组tv1.vec［256］中的哪一个定时器向量，也即该数组的索引，其初值为0，最大值为255（以256为模）。每个时钟节拍时index字段都会加1。显然，index字段所指定的定时器向量tv1.vec［index］中包含了当前时钟节拍内已经到期的所有动态定时器。而定时器向量tv1.vec［index＋k］则包含了接下来第k个时钟节拍时刻将到期的所有动态定时器。当index值又重新变为0时，就意味着内核已经扫描了tv1变量中的所有256个定时器向量。在这种情况下就必须将那些以松散定时器向量语义来组织的定时器向量补充到tv1中来。</p>
-
-<p>（2）而对于内核不关心的、interval值在［0xff，0xffffffff］之间的定时器，它们的到期紧迫程度也随其interval值的不同而不同。显然interval值越小，定时器紧迫程度也越高。因此在将它们以松散定时器向量进行组织时也应该区别对待。通常，定时器的interval值越小，它所处的定时器向量的松散度也就越低（也即向量中的各定时器的expires值相差越小）；而interval值越大，它所处的定时器向量的松散度也就越大（也即向量中的各定时器的expires值相差越大）。内核规定，对于那些满足条件：0x100≤interval≤0x3fff的定时器，只要表达式（interval>>8）具有相同值的定时器都将被组织在同一个松散定时器向量中。因此，为组织所有满足条件0x100≤interval≤0x3fff的定时器，就需要26＝64个松散定时器向量。同样地，为方便起见，这64个松散定时器向量也放在一起形成数组，并作为数据结构timer_vec的一部分。基于数据结构timer_vec，Linux定义了全局变量tv2，来表示这64条松散定时器向量。如上述代码段所示。对于那些满足条件0x4000≤interval≤0xfffff的定时器，只要表达式（interval>>8＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000≤interval≤0xfffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv3全局变量来表示这64个松散定时器向量。对于那些满足条件0x100000≤interval≤0x3ffffff的定时器，只要表达式（interval>>8＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x100000≤interval≤0x3ffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv4全局变量来表示这64个松散定时器向量。对于那些满足条件0x4000000≤interval≤0xffffffff的定时器，只要表达式（interval>>8＋6＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000000≤interval≤0xffffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv5全局变量来表示这64个松散定时器向量。最后，为了引用方便，Linux定义了一个指针数组tvecs[]，来分别指向tv1、tv2、…、tv5结构变量。如上述代码所示。</p>
-
-<h2>内核动态定时器机制的实现</h2>
-
-<p>在内核动态定时器机制的实现中，有三个操作时非常重要的：</p>
-
-<p>（1）将一个定时器插入到它应该所处的定时器向量中。</p>
-
-<p>（2）定时器的迁移，也即将一个定时器从它原来所处的定时器向量迁移到另一个定时器向量中。</p>
-
-<p>（3）扫描并执行当前已经到期的定时器。</p>
-
-<h3>动态定时器机制的初始化</h3>
-
-<p>函数init_timers_cpu()实现对动态定时器机制的初始化。由于2.6以后,tvec_base变成了percpu的数据类型,所以就要对在cpu处于CPU_UP_PREPARE_FROZEN状态的时候对相应的数据结构进行初始化.</p>
-
-<h3>动态定时器的时钟滴答基准timer_jiffies</h3>
-
-<p>由于动态定时器是在时钟中断的Bottom Half中被执行的，而从TIMER_SOFTIRQ向量被激活到其run_timer_softirq()函数真正执行这段时间内可能会有几次时钟中断发生。因此内核必须记住上一次运行定时器机制是什么时候，也即内核必须保存上一次运行定时器机制时的jiffies值。为此，Linux在kernel/timer.c文件中定义了全局变量timer_jiffies来表示上一次运行定时器机制时的jiffies值。在run_timer_softirq中,首先检查jiffies是否大于timer_jiffies,只有大于timer_jiffies的时候,才会调用__run_timers函数(这个函数真正处理timer的函数)</p>
-
-<h3>定时器迁移操作</h3>
-
-<p>由于一个定时器的interval值会随着时间的不断流逝（即jiffies值的不断增大）而不断变小，因此那些原本到期紧迫程度较低的定时器会随着jiffies值的不断增大而成为既把马上到期的定时器。比如定时器向量tv2.vec[0]中的定时器在经过256个时钟滴答后会成为未来256个时钟滴答内会到期的定时器。因此，定时器在内核动态定时器链表中的位置也应相应地随着改变。改变的规则是：当tv1.index重新变为0时（意味着tv1中的256个定时器向量都已被内核扫描一遍了，从而使tv1中的256个定时器向量变为空），则用tv2.vec［index］定时器向量中的定时器去填充tv1，同时使tv2.index加1（它以64为模）。当tv2.index重新变为0（意味着tv2中的64个定时器向量都已经被全部填充到tv1中去了，从而使得tv2变为空），则用tv3.vec［index］定时器向量中的定时器去填充tv2。如此一直类推下去，直到tv5。函数cascade_timers()完成这种定时器迁移操作，该函数只有一个timer_vec结构类型指针的参数tv。</p>
-
-<h3>__run_timers</h3>
-
-<p>这个函数会把上次执行time 软中断到目前所有的超时函数都运行一遍.通过两个while循环来完成,外面的循环,每次执行每个tick里所有的超时函数,里面的循环执行一个tick里的每个超时函数</p>
 ]]></content>
   </entry>
   

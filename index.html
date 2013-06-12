@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。 &hellip;">
+  <meta name="description" content="之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +71,87 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/06/11/python-multiple-core/">让python Webserver 能好好利用多核</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/06/11/python-multiple-core/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/11/python-multiple-core/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/12/kernel-bypass/">Kernel_bypass</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T08:47:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/04/12/kernel-bypass/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/03/19/three-handshakes/">Linux Tcp三次握手建立过程</a></h1>
     
     
@@ -105,44 +186,6 @@
 <p>第一步完成。当client返回ack后进行第二步：</p>
 
 <p>前面跟第一步的步骤是一样的，分叉口是在进入tcp_v4_hnd_req函数后，当调用inet_csk_search_req查找半连接，肯定是可 以查到这个连接的。然后调用tcp_check_req对这个包进行检查，首先还是进行包结构的检查，检查seq号，如果和刚才的是已建立的半连接的是相 同的，那么重新发送调用req->rsk_ops->rtx_syn_ack其实也就是tcp_v4_send_synack向请求方发送一 个synack。如果ack_seq不是期望的值，那么返回当前sock，然后在tcp_rcv_state_process中返回1，调用 tcp_v4_send_reset进行相应的处理，如果该包设置了rst包或者是本机产生的包，那么我们不做处理。如果是其他的，那么我们就发送rst 包给请求方。如果window大小跟之前有很大不同，那么调用req->rsk_ops->send_ack也就是tcp_send_ack 只是单单返回一个ack。如果包的seq和之前的是一样的，那么清除TCP_FLAG_SYN位。然后检查syn和rst标志位，如果设置了，那么还是调 用tcp_v4_send_reset进行相应的处理。检查都通过 后，inet_csk(sk)->icsk_af_ops->syn_recv_sock来新建新的连接。并从syn 队列中删除对应的syn request。将新的连接添加到sock的accept队列中去。返回到tcp_v4_do_rcv中进入tcp_child_process函数确定 没有其他用户使用该新生成的连接后，如果有的话就将该连接加入到backlog中去。调用tcp_rcv_state_process。调用tcp_ack对该包进行检查，功能后面再了解，进行检查后修改连接的状态为TCP_ESTABLISHED后对该连接进行一些另外的设置。新建完成</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/03/18/linux-memory-address/">Linux Memory Address</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-03-18T17:15:00+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2013</time>
- 	
-      | <a href="/blog/2013/03/18/linux-memory-address/#comments">Comments</a>
-     
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
 </div>
   
   
@@ -425,11 +468,15 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
+        <a href="/blog/2013/06/11/python-multiple-core/">让python webserver 能好好利用多核</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2013/03/18/linux-memory-address/">linux memory address</a>
+        <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
       </li>
     
       <li class="post">
@@ -440,18 +487,16 @@
         <a href="/blog/2013/03/14/kernel-gro-gso/">kernel中关于gso gro的一些内容</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/03/10/learning-quilt/">quilt&guilt介绍</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/kernel/'>kernel (4)</a></li>
-<li class='category'><a href='/blog/categories/kernel-/'>kernel, (1)</a></li>
+    <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (6)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
 <li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
