@@ -95,6 +95,9 @@
 
 <div class="entry-content"><p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
 
+<!-- more -->
+
+
 <p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
 
 <p>tcp_v4_do_rcv首先依旧是一系列的安全检查，当通过安全检查后，对于建立连接的请求，这时sock的状态应该是listen。然后调用 tcp_v4_hnd_req对数据报进行处理。首先调用inet_csk_search_req函数，看是否已经将该请求放入了syn队列中，就是本文 最开头说的第一步是否已经做了，如果做了肯定可以找到对应的request_sock，对于刚刚请求的，肯定是找不到的，然后我们继续在建立连接的 socket队列中查找，如果是已经建立了连接的（客户端重传的syn包）还要判断当前状态是否是time_wait如果是的就返回null，不是那就换回 对应的soket，如果到这时候还没找到，那么就返回原有的sock（没有找到对应的request_sock，就是没有完成本文开始说的第一步，并且没 有对这个请求建立连接）。这时返回到了tcp_v4_do_rcv函数，一般的连接请求肯定返回的还是原来的sock，所以就会进行之后的处理 tcp_rcv_state_process。这个函数主要用来处理接受方面的状态迁移，但是不包括ESTABLISHED和TIME_WAIT。对于目 前，sock的状态肯定是listen，收到syn包，那么调用icsk->icsk_af_ops->conn_request，其实对应 调用的是tcp_v4_conn_request。首先，还是要做一些检查。tcp肯定该不会处理发向多播地址或者组播地址的syn包。通过 inet_csk_reqsk_queue_is_full检查syn queue 是否已经满了(queue->listen_opt->qlen >> queue->listen_opt->max_qlen_log)，如果满的话，同时没有打开syncookie功能的话，只能drop掉该包。然后通过sk_acceptq_is_full检查接受队列是否已经满了(sk->sk_ack_backlog > sk->sk_max_ack_backlog)，并且有没有被处理过的syn（没有收到ack并且没有发生synack重传）。 如果这样的话也会drop掉这个包。通过都没问题，当然就该分配一个新的请求连接放到syn queue中去了。这过程中主要是要根据客户端发过来的数据报中的tcp options进行对新建的request_sock进行初始化。然后调用__tcp_v4_send_synack向client发送synack，并 将这个request_sock添加到syn队列中去。</p>
@@ -226,7 +229,8 @@ var duoshuoQuery = {short_name:"joycn"};
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
-<li class='category'><a href='/blog/categories/kernel/'>kernel (6)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/network/'>network (1)</a></li>
 <li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
 <li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
 <li class='category'><a href='/blog/categories/web/'>web (1)</a></li>

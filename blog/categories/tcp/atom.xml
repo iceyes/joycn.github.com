@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tcp | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/tcp/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-06-12T14:49:50+08:00</updated>
+  <updated>2013-06-12T18:35:54+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -19,6 +19,9 @@
     <updated>2013-03-19T08:40:00+08:00</updated>
     <id>http://joycn.github.com/blog/2013/03/19/three-handshakes</id>
     <content type="html"><![CDATA[<p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+<!-- more -->
+
 
 <p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
 

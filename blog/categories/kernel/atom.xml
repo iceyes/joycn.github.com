@@ -4,7 +4,7 @@
   <title><![CDATA[Category: kernel | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/kernel/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-06-12T14:49:50+08:00</updated>
+  <updated>2013-06-12T18:35:54+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -32,11 +32,62 @@
   </entry>
   
   <entry>
+    <title type="html"><![CDATA[kernel_bypass]]></title>
+    <link href="http://joycn.github.com/blog/2013/04/12/kernel-bypass/"/>
+    <updated>2013-04-12T08:47:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/04/12/kernel-bypass</id>
+    <content type="html"><![CDATA[<p>现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行.主流的kernel_bypass的方案有下面这么几个:</p>
+
+<!-- more -->
+
+
+<ul>
+<li><a href="http://www.ntop.org/products/pf_ring/dna/">ntop.org DNA</a>.</li>
+<li><a href="http://info.iet.unipi.it/~luigi/netmap/">netmap.</a></li>
+<li><a href="http://www.intel.com/content/www/us/en/intelligent-systems/intel-technology/packet-processing-is-enhanced-with-software-from-intel-dpdk.html">Intel DPDK.</a></li>
+<li>Myricom <a href="https://www.myricom.com/software/sniffer10g.html">Sniffer10G</a> and <a href="https://www.myricom.com/software/dbl.html">DBL</a>.</li>
+<li>SolarFlare <a href="http://www.openonload.org/">OpenOnload</a>.</li>
+<li><a href="http://www.napatech.com/products/network_adapters.html">Napatech</a>.</li>
+</ul>
+
+
+<p>Myricom和Napatech都要用到自己特定的硬件,DNA又需要license.Napatech又需要DNA,又需要硬件.netmap是完全开源的,intel DPDK现在也开源了(网址就是www.dpdk.org).之前看过netmap的介绍,自己也简单试了下,效果没有想象的那么好,而且大部分也修改的驱动也是intel网卡的驱动.既然DPDK已经开源了,就先了解下DPDK方面的东西了.</p>
+
+<h2>总结下DPDK是如何去实现80Mpps的目标的</h2>
+
+<p>正常模式下存在的问题</p>
+
+<ul>
+<li>对于大量的网卡中断,系统已经跟不上中断的速度.</li>
+<li>对于linux进程切换的消耗.</li>
+<li>CPU的速度与PCIe速度之间的差距</li>
+<li>cache与访存的问题</li>
+<li>数据共享的问题</li>
+<li>页表的频繁更新</li>
+</ul>
+
+
+<p>对于大量中断的问题,linux原本已经做了一部分优化,就是napi,按理说应该已经可以很大的减少硬件中断带来的性能损耗.但是,并没有减少硬件中断的次数.在napi的逻辑里,在网卡中断的处理逻辑是,检查该网卡是否已经有需要处理的数据包,如果有的话,不需要再做后续的处理,napi会在处理之前的数据包的时候,把现在的数据包也一起处理了,从而减少了硬中断的工作量.但是,中断的频率并没有改变.DPDK的方法其实,就是取消中断,靠系统,去主动的polling网卡,减少中断的开销.这样,虽然在网卡闲的时候,额外功会比较多,但是在网卡忙的时候,有效功就很高了.</p>
+
+<p>对于进程切换的问题,绑定逻辑进程到固定的cpu,减少进程间的切换带来的消耗.由于处理数据包大部分的工作都交给用户态进程来做.所以,kernel<->userspace之间的切换也少了很多.而且还减少了,进程在不通cpu上切换,带来的numa相关的问题</p>
+
+<p>对于PCIe速度的差异,以及访问内存的差异.跟第一点也有一定的关系,其实通过polling,一次取数据的时候,尽可能多的取数据,减少访存的次数.对于访问内存的差异,可以通过pre-fetch的方式预取,PCIe的话,可以直接通过DDIO将数据包放到L3cache中.</p>
+
+<p>数据共享的问题,其实还是说,逻辑放到了用户态,用户可以自己去实现逻辑,通过合理的方式,减少为了保证数据一致性,使用同步机制带来的性能损耗</p>
+
+<p>页表的更新..这个,不太熟,大概还是因为说,intel通过内核huge page的方式,尽可能的减少页表的更新.后面了解下这里</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[linux tcp三次握手建立过程]]></title>
     <link href="http://joycn.github.com/blog/2013/03/19/three-handshakes/"/>
     <updated>2013-03-19T08:40:00+08:00</updated>
     <id>http://joycn.github.com/blog/2013/03/19/three-handshakes</id>
     <content type="html"><![CDATA[<p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+<!-- more -->
+
 
 <p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
 
@@ -394,128 +445,6 @@ GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些�
 <p>不过问题似乎不是出在这里,后面在把gso的内容给补充下</p>
 
 <p>临了了抱怨句,白天看代码效率真低,半天没能去静下心来看这里的代码,晚上看了一会就明白里面的意思了.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[quilt&guilt介绍]]></title>
-    <link href="http://joycn.github.com/blog/2013/03/10/learning-quilt/"/>
-    <updated>2013-03-10T19:00:00+08:00</updated>
-    <id>http://joycn.github.com/blog/2013/03/10/learning-quilt</id>
-    <content type="html"><![CDATA[<p>前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个.</p>
-
-<!-- more -->
-
-
-<p>先介绍下quilt,quilt是Andrew Morton最初用来维护linux kernel memory子系统的.其实quilt就是用来管理patch的.我们可以pop或者push patch到源码中去,用简单的方式来管理我们的patch.这些话都是比较虚的,从那天大表哥那介绍到的,我感觉最大的好处,还真就是管理patches很方便.传统,比如我们用git来做版本管理,当我们开发了一个新的功能的patch,然后我们去做后续的内容,但是过了好久,我们突然发现,这个patch有bug,我们就要去修改这个功能,这时,版本号还是在增加,我们就会对patch的管理很麻烦.毕竟同一个功能的一个patch,我们不能很清楚的找到他所有的修改信息.当然quilt也不能替代git来做版本管理,因为它并不记录到底我们做过什么样的修改.(所以就又出现了guilt)</p>
-
-<p>下面来介绍下quilt的用法(其实就是翻译的老外的文章)</p>
-
-<p>以2.6.32的kernel为例</p>
-
-<p>进入到kernel的主目录后,我们先新建一个patches的目录,用于存放我们的patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkdir patches
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>然后我们要告诉quilt我们新创建了一个名为patch1的patch,patch1就是用来管理这个patch内容的一个名字.并不是说真的生成一个文件.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt new patch1
-</span><span class='line'>Patch patches/patch1 is now on top
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-这时候我们通过cat patches/series 就发现多了一行patch1的内容.</p>
-
-<p>quilt需要我们告诉他,在这个新的patch中,我们都修改了那些内容.通过以下这个命令来完成这个功能.比如说我要修改ipvs相关的内容,拿net/netfilter/ipvs/ip_vs_conn.c为例.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt add net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>File Makefile added to patch patches/patch1
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>当我们修改了这个文件后,我们需要告诉quilt来更新这个patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> quilt refresh
-</span><span class='line'>Refreshed patch patches/patch1
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>这个时候,patches/patch1就会是一个你这次所有更改信息的的一个patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> cat patches/patch1&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h1&gt;Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c&lt;/h1&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>+++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>@@ -22,6 +22,8 @@
-</span><span class='line'>  *
-</span><span class='line'>  */&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;+
-</span><span class='line'>+
-</span><span class='line'> <span class="c">#define KMSG_COMPONENT &quot;IPVS&quot;</span>
-</span><span class='line'> <span class="c">#define pr_fmt(fmt) KMSG_COMPONENT &quot;: &quot; fmt</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>我们就可以继续修改这个patch,或者说,如果我们觉得这个patch的功能完成了,我们想修改其他的内容,我们可以再新建一个新的patch,比如patch2.这个就是按着patch的先后顺序来的.如果我们想看,现在所有的patch,那么,我们可以通过以下命令来查看,为了方便起见,我又新加了一个patch,好对下面这个命令进行说明
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt series -v
-</span><span class='line'>+ patches/patch1
-</span><span class='line'><span class="o">=</span> patches/patch2
-</span></code></pre></td></tr></table></div></figure></notextile></div>
-This output shows that all three patches are applied, and that the current one is patch3.
-从上面的命令可以看出来,现在我们有两个patch.当前的操作的patch是patch2</p>
-
-<p>If a new kernel version is released, and you wish to port your changes to the new version, quilt can handle this easily with the following steps:
-如果新版本的kernel发布了.我们想把我们的patch应用到新的版本里,quilt也可以帮我们.</p>
-
-<p>首先,我们需要把我们所有的patch全部pop出来.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt pop -a
-</span><span class='line'>Patch patches/patch2 appears to be empty, removing&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Removing patch patches/patch1
-</span><span class='line'>Restoring net/netfilter/ipvs/ip_vs_conn.c&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;No patches applied
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>然后我们把patches文件,拷贝到新的内核目录下.然后执行quilt push来为新版本内核打patch(一次push只打一个patch)
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt push
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>如果对应的文件没有什么大的变化(就是不影响我们的patch,那么就会直接patch成功,如果不成功,那么就需要我们使用-f参数,然后手动的去修改区别的地方)</p>
-
-<p>当我们手动修改完后,需要再次quilt refresh来更新patch.</p>
-
-<p>quilt also has options that will automatically email out all of the patches in the series to a group of people or a mailing list, delete specific patches in the middle of the series, go up or down the series of patches until a specific patch is found, and many more powerful options.quilt还可以帮我们把patch自动的发送email给别人.或者删除几个patch中的中间几个等其他的功能.如果我们想做kernel相关的开发,quilt是一个很好用的工具,你不用自己去diff,做patch,从而开发变得简单,就如大表哥说的,这个是提高生产力的工具.</p>
-
-<p>更多的命令还是通过man来查看吧,写的很详细</p>
-
-<p>实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下</p>
 ]]></content>
   </entry>
   
