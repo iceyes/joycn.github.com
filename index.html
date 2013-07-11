@@ -9,7 +9,8 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="内容有点多,一点一点理解,一点一点记录 swtich中含有一个或者多个flow table以及一个group table. datapath中的处理 datapatch中对数据包的处理,主要是通过查询flow table的方式,来对数据包进行相应的处理.先说下概念: flow table: &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +72,44 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/06/26/of-spec/">Of_spec</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-26T00:01:00+08:00" pubdate data-updated="true">Jun 26<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/06/26/of-spec/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/06/25/of-spec/">Openflow Spec理解</a></h1>
     
     
@@ -120,10 +159,10 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
 <li>group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
 
 <ul>
-<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播
-+select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.
-+indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关
-+fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
+<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播</li>
+<li>select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.</li>
+<li>indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关</li>
+<li>fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
 </ul>
 </li>
 </ul>
@@ -493,47 +532,6 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
- 	
-      | <a href="/blog/2013/03/05/something-about-vrrp/#comments">Comments</a>
-     
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2013/03/05/something-about-vrrp/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -549,6 +547,10 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/06/26/of-spec/">of_spec</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/06/25/of-spec/">openflow spec理解</a>
       </li>
     
@@ -562,10 +564,6 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
     
       <li class="post">
         <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
       </li>
     
   </ul>

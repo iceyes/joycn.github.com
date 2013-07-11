@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。 按着蔓草笔记的在Github上搭建Octopress博客的介绍一步一步过来基本没什么问题的。 ">
+  <meta name="description" content="之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +71,47 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/05/something-about-vrrp/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/05/something-about-vrrp/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/03/05/start/">Start</a></h1>
     
     
@@ -126,6 +167,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/06/26/of-spec/">of_spec</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/06/25/of-spec/">openflow spec理解</a>
       </li>
     
@@ -139,10 +184,6 @@
     
       <li class="post">
         <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
       </li>
     
   </ul>

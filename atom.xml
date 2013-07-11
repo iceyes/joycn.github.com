@@ -4,7 +4,7 @@
   <title><![CDATA[iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-06-25T23:59:36+08:00</updated>
+  <updated>2013-07-11T15:38:28+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[of_spec]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/26/of-spec/"/>
+    <updated>2013-06-26T00:01:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/26/of-spec</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[openflow spec理解]]></title>
@@ -42,10 +51,10 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
 <li>group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
 
 <ul>
-<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播
-+select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.
-+indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关
-+fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
+<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播</li>
+<li>select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.</li>
+<li>indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关</li>
+<li>fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
 </ul>
 </li>
 </ul>
