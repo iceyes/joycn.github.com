@@ -4,7 +4,7 @@
   <title><![CDATA[Category: develop | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/develop/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-06-12T18:35:54+08:00</updated>
+  <updated>2013-06-26T00:01:22+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -30,71 +30,53 @@
 <p>以2.6.32的kernel为例</p>
 
 <p>进入到kernel的主目录后,我们先新建一个patches的目录,用于存放我们的patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkdir patches
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$ mkdir patches
+{% endcodeblock %}</p>
 
 <p>然后我们要告诉quilt我们新创建了一个名为patch1的patch,patch1就是用来管理这个patch内容的一个名字.并不是说真的生成一个文件.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt new patch1
-</span><span class='line'>Patch patches/patch1 is now on top
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+{% codeblock lang:bash %}
+$ quilt new patch1
+Patch patches/patch1 is now on top
+{% endcodeblock %}
 这时候我们通过cat patches/series 就发现多了一行patch1的内容.</p>
 
 <p>quilt需要我们告诉他,在这个新的patch中,我们都修改了那些内容.通过以下这个命令来完成这个功能.比如说我要修改ipvs相关的内容,拿net/netfilter/ipvs/ip_vs_conn.c为例.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt add net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>File Makefile added to patch patches/patch1
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$ quilt add net/netfilter/ipvs/ip_vs_conn.c
+File Makefile added to patch patches/patch1
+{% endcodeblock %}</p>
 
 <p>当我们修改了这个文件后,我们需要告诉quilt来更新这个patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> quilt refresh
-</span><span class='line'>Refreshed patch patches/patch1
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$  quilt refresh
+Refreshed patch patches/patch1
+{% endcodeblock %}</p>
 
 <p>这个时候,patches/patch1就会是一个你这次所有更改信息的的一个patch
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> cat patches/patch1&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;h1&gt;Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c&lt;/h1&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>+++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
-</span><span class='line'>@@ -22,6 +22,8 @@
-</span><span class='line'>  *
-</span><span class='line'>  */&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;+
-</span><span class='line'>+
-</span><span class='line'> <span class="c">#define KMSG_COMPONENT &quot;IPVS&quot;</span>
-</span><span class='line'> <span class="c">#define pr_fmt(fmt) KMSG_COMPONENT &quot;: &quot; fmt</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$  cat patches/patch1</p>
+
+<h1>Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c</h1>
+
+<p>--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
++++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+@@ -22,6 +22,8 @@
+  *
+  */</p>
+
+<p>+
++
+ #define KMSG_COMPONENT "IPVS"
+ #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+{% endcodeblock %}</p>
 
 <p>我们就可以继续修改这个patch,或者说,如果我们觉得这个patch的功能完成了,我们想修改其他的内容,我们可以再新建一个新的patch,比如patch2.这个就是按着patch的先后顺序来的.如果我们想看,现在所有的patch,那么,我们可以通过以下命令来查看,为了方便起见,我又新加了一个patch,好对下面这个命令进行说明
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt series -v
-</span><span class='line'>+ patches/patch1
-</span><span class='line'><span class="o">=</span> patches/patch2
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+{% codeblock lang:bash %}
+$ quilt series -v
++ patches/patch1
+= patches/patch2
+{% endcodeblock %}
 This output shows that all three patches are applied, and that the current one is patch3.
 从上面的命令可以看出来,现在我们有两个patch.当前的操作的patch是patch2</p>
 
@@ -102,26 +84,20 @@ This output shows that all three patches are applied, and that the current one i
 如果新版本的kernel发布了.我们想把我们的patch应用到新的版本里,quilt也可以帮我们.</p>
 
 <p>首先,我们需要把我们所有的patch全部pop出来.
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt pop -a
-</span><span class='line'>Patch patches/patch2 appears to be empty, removing&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;Removing patch patches/patch1
-</span><span class='line'>Restoring net/netfilter/ipvs/ip_vs_conn.c&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;No patches applied
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$ quilt pop -a
+Patch patches/patch2 appears to be empty, removing</p>
+
+<p>Removing patch patches/patch1
+Restoring net/netfilter/ipvs/ip_vs_conn.c</p>
+
+<p>No patches applied
+{% endcodeblock %}</p>
 
 <p>然后我们把patches文件,拷贝到新的内核目录下.然后执行quilt push来为新版本内核打patch(一次push只打一个patch)
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt push
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+{% codeblock lang:bash %}
+$ quilt push
+{% endcodeblock %}</p>
 
 <p>如果对应的文件没有什么大的变化(就是不影响我们的patch,那么就会直接patch成功,如果不成功,那么就需要我们使用-f参数,然后手动的去修改区别的地方)</p>
 

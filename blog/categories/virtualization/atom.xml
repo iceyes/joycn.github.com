@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: virtualization | iCen DiaMondinG]]></title>
+  <link href="http://joycn.github.com/blog/categories/virtualization/atom.xml" rel="self"/>
+  <link href="http://joycn.github.com/"/>
+  <updated>2013-06-26T00:01:22+08:00</updated>
+  <id>http://joycn.github.com/</id>
+  <author>
+    <name><![CDATA[joycn]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[VXLAN初探]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/22/information-about-vxlan/"/>
+    <updated>2013-06-22T12:49:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/22/information-about-vxlan</id>
+    <content type="html"><![CDATA[<p>这两天了解了下VXLAN相关方面的东西,virtual extend lan.算了vlan的拓展,通过网络三层的方式,来解决目前云计算中,vlan的不足之处.</p>
+
+<!-- more -->
+
+
+<h2>VXLAN是为了解决什么问题?</h2>
+
+<p>spanning tree的限制:</p>
+
+<p>用户隔离:</p>
+
+<p>在云计算中,由于用户相比传统来说,用户更多,为了在2层上进行隔离,就需要使用vlan来同一个2层中,隔离不同的用户.而vlan本来的设计,只支持4096个id,这样,可能在传统网络中,vlan的数量还够用,但是对于说云计算,一个物理机会虚出很多的实例来,可能对于4096就满足不了我们的要求了.
+而使用三层的方式来做隔离,对于不同用户在同一个三层网络中,就需要云提供商来解决怎么样做隔离的问题,同时,因为是三层隔离,所以用户,也就不能像传统方式那样,去相信2层网络或者三层非ip协议的通信了.</p>
+
+<p>交换机mac表大小的问题</p>
+
+<p>由于虚拟化的原因,造成交换机mac表的内容成倍的增加,不仅要记录物理机的mac地址,还要记录虚拟机的地址,这样,当mac表满了的时候,新的未知目的mac的数据帧都要被进行泛洪</p>
+
+<h2>VXLAN的原理</h2>
+
+<p>VXLAN其实就是在宿主机上对vm发出的数据包,进行重新封装,类似tunel的方式.但是tunel只进行ip层的封装.VXLAN会首先给数据包加上VXLAN相关的信息头,然后会根据路由查找对端的VTEP.进行路由,采用udp数据包的方式,将数据包发送出去.这时候,原本vm发出的数据包的所有内容加上vxlan的头部信息,都成为了udp数据包的内容.然后传递给对端,由对端来进行解析,拆包,然后传递给vm.所以,要相应的调整网络上的mtu,考虑到vm可能会打vlan tag, 加上vxlan的头部,一般调整为1600</p>
+
+<p>跟tunel不同的是,tunel只是在原始ip头前进行封装,然后进行路由转发.而VXLAN是,对整个数据包进行重新封装.</p>
+
+<h2>VXLAN的通信方式</h2>
+
+<p>VXLAN对于vm来说是透明的,vm的方式跟没有VXLAN时的通信方式是没有变化的
+对于宿主机或者支持vxlan的交换机来说,采用以下的通信方式:</p>
+
+<p>点对点:</p>
+
+<p>当vm的发出的数据包到达宿主机后,宿主机首先查找vm对应的VNI,如果查找到的话,那么就根据目的mac 来查找对应的远端VTEP.</p>
+
+<p>对于接受方,当收到vxlan的数据包后,首先检查vxlan的id,然后检查目的mac是否是本机上的vm,如果是的话,就把vxlan的头部拆除掉,把数据包传给vm.同时,学习源mac与源VTEP的ip的映射关系.(类似交换机的方式)</p>
+
+<p>广播:</p>
+
+<p>传统的方式,当vm与一个同网段的ip进行通信时,首先通过arp广播来获取对端ip的mac地址.当数据包到达宿主机后,宿主机同样会对arp进行vxlan信息的封装.只不过,目的ip不会是广播ip,而且是换成了多播(VTEP的ip本来就没有要求在同一个网段.)所以,我们首先要能获取到VNI对应的广播地址,这个主要是通过配置来完成.然后VTEP通过IGMP的方式来通告加入或者离开广播组.所以如果利用多播路由协议,可以提高广播的效率.(这么想想,其实广播的频率还是很高的.所以内核中vxlan中会有一个arp_reduce的函数,来减少广播的次数)</p>
+
+<h2>安全考虑</h2>
+
+<p>因为采用的多播的方式,当有用户恶意加入到某个多播组里,这样就能获取到所有广播的数据包内容.对于VXLAN本身带来的安全风险,可以通过3层的方式来解决,比如说IPsec.另外,有说通过对VTEP打vlan的方式来解决.</p>
+]]></content>
+  </entry>
+  
+</feed>

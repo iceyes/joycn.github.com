@@ -98,11 +98,11 @@
 <!-- more -->
 
 
-<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实自己的思路是错的,怎么滴也要先简单实际测下,看到底会有多大的损失.</p>
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实怎么滴还是要先简单实际测下,看到底会有多大的损失.</p>
 
 <p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
 
-<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多时间没做呢,要打算写app了.算是自己视野的拓展吧.一直在底层呆着,会呆的&#8230;</p>
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多事情没做,打算关注下其他的方面,算是自己视野的拓展吧.一直在底层呆着,会呆的&#8230;</p>
 </div>
 
 
@@ -169,6 +169,8 @@
         <a class="basic-alignment left" href="/blog/2013/04/12/kernel-bypass/" title="Previous Post: kernel_bypass">&laquo; kernel_bypass</a>
       
       
+        <a class="basic-alignment right" href="/blog/2013/06/22/information-about-vxlan/" title="Next Post: VXLAN初探">VXLAN初探 &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -200,6 +202,14 @@ var duoshuoQuery = {short_name:"joycn"};
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/06/25/of-spec/">openflow spec理解</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/22/information-about-vxlan/">VXLAN初探</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/06/11/python-multiple-core/">让python webserver 能好好利用多核</a>
       </li>
     
@@ -211,14 +221,6 @@ var duoshuoQuery = {short_name:"joycn"};
         <a href="/blog/2013/03/19/three-handshakes/">linux tcp三次握手建立过程</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/03/14/kernel-gro-gso/">kernel中关于gso gro的一些内容</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -226,9 +228,12 @@ var duoshuoQuery = {short_name:"joycn"};
   <ul id="categories">
     <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
 <li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
-<li class='category'><a href='/blog/categories/network/'>network (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
 <li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
 <li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
 <li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>

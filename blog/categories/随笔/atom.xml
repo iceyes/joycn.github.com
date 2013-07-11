@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 随笔 | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/随笔/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-06-12T18:35:54+08:00</updated>
+  <updated>2013-06-26T00:01:22+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -26,15 +26,12 @@
 
 
 <p>需要注意的是，在安装了git之后，需要进行相应的配置
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>1. 在git的安装目录下找到git bash打开
-</span><span class='line'>2. 然后执行 ssh-keygen -t rsa -C <span class="s2">&quot;your_email@youremail.com&quot;</span>生成密钥
-</span><span class='line'>3. 然后把 用户名.ssh<span class="se">\下</span>生成的id_rsa.pub的内容copy下来
-</span><span class='line'>4. 在github上的“Account Settings”&gt;&gt;“SSH Keys”&gt;&gt;“Add another key”，将刚才复制的内容粘贴到key文本框内。
-</span></code></pre></td></tr></table></div></figure></notextile></div>
+{% codeblock lang:bash %}
+1. 在git的安装目录下找到git bash打开
+2. 然后执行 ssh-keygen -t rsa -C "your_email@youremail.com"生成密钥
+3. 然后把 用户名.ssh\下生成的id_rsa.pub的内容copy下来
+4. 在github上的“Account Settings”>>“SSH Keys”>>“Add another key”，将刚才复制的内容粘贴到key文本框内。
+{% endcodeblock %}
 然后还要预先建立github pages
 新建repo后，根据提示，来新建pages。要不然后面即是deploy之后，访问也是会报404的..</p>
 
