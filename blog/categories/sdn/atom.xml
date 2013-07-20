@@ -4,7 +4,7 @@
   <title><![CDATA[Category: sdn | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/sdn/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-07-11T15:38:28+08:00</updated>
+  <updated>2013-07-20T22:15:43+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<p>内容有点多,一点一点理解,一点一点记录</p>
 
 <p>swtich中含有一个或者多个flow table以及一个group table.</p>
+
+<!-- more -->
+
 
 <h2>datapath中的处理</h2>
 

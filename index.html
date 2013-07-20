@@ -9,8 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="今天看了下openvswitch的编码风格,感觉整体还不错,这里记录下,以后自己的编码风格也会按着这个来. ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,7 +71,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/06/26/of-spec/">Of_spec</a></h1>
+      <h1 class="entry-title"><a href="/blog/2013/07/18/coding-style/">编码风格</a></h1>
     
     
       <p class="meta">
@@ -88,18 +87,23 @@
   
 
 
-<time datetime="2013-06-26T00:01:00+08:00" pubdate data-updated="true">Jun 26<span>th</span>, 2013</time>
+<time datetime="2013-07-18T09:55:00+08:00" pubdate data-updated="true">Jul 18<span>th</span>, 2013</time>
  	
-      | <a href="/blog/2013/06/26/of-spec/#comments">Comments</a>
+      | <a href="/blog/2013/07/18/coding-style/#comments">Comments</a>
      
       </p>
     
   </header>
 
 
-  <div class="entry-content">
+  <div class="entry-content"><p>今天看了下openvswitch的编码风格,感觉整体还不错,这里记录下,以后自己的编码风格也会按着这个来.</p>
+
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/18/coding-style/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -139,46 +143,12 @@
 
 <p>swtich中含有一个或者多个flow table以及一个group table.</p>
 
-<h2>datapath中的处理</h2>
-
-<p>datapatch中对数据包的处理,主要是通过查询flow table的方式,来对数据包进行相应的处理.先说下概念:</p>
-
-<ul>
-<li>flow table: 类似路由表,里面保存一个一个的entry,通过数据包内容与entry的匹配,来进行相应的处理,而且 flow table跟路由表还真像,一个swtich上可以有多个flow table,按按优先级来进行排序.顺序查找.一个entry的有三部分组成:match fields, priority, counters, instructions, timeouts, cookie. match fields和priority确定表中唯一一个entry.所有匹配掩码,priority为0的entry为table-miss flow entry.类似路由表中的default route.所以对于数据包来说,datapath要做的事情就是, <strong>匹配</strong>, <strong>计数</strong>, <strong>操作</strong>的循环动作</li>
-<li>INSTRUCTIONS: 当匹配到一个entry后,实际要进行的操作.主要是修改数据包,修改action-set, 修改 metadata以及goto table四种操作.具体的操作有Apply-Actions, Clear-Actions, Write-Actions, Write-Metadata, Goto-Table.
-
-<ul>
-<li>Apply-Actions: 这个是直接对数据包进行修改,而不操作action set</li>
-<li>Clear-Actions: 直接清空action set.</li>
-<li>Write-Actions: 将当前的action添加到actions set中</li>
-<li>Write-Metadata: 修改metadata.比如说 new_metadata = old_metadata &amp; ~mask | value &amp; mask</li>
-<li>Goto-Table: pipeline中使用,指定下一个要查找的flow table id. 下一个要查找的id 要大于当前table的id
-flow entry的删除有两种方式,一种是controller主动发送request来删除,另外一个是swtich的超时机制.超时机制主要用到两个时间: <strong>hard_timeout</strong>和<strong>idle_timeout</strong>.当其中一个时间为0就要讲entry删除.如果entry设置了OFPFF_SEND_FLOW_REM,还要通告controller,entry被删除了</li>
-</ul>
-</li>
-<li>group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
-
-<ul>
-<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播</li>
-<li>select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.</li>
-<li>indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关</li>
-<li>fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
-</ul>
-</li>
-</ul>
-
-
-<p>所以整体流程如下,数据包从第一个table开始匹配</p>
-
-<ol>
-<li>由于table-miss entry的存在,所以可以由table-miss entry来决定在table中没有其他匹配的entry时的动作. table-miss entry至少要支持通过CONTROLLER保留端口将数据包转发给controller和使用clear-actions instruction将数据包drop.另外,为了兼容原来的版本,一般也要支持把数据包将给下一个table来进行处理.</li>
-<li>当有匹配的entry时,执行对应的instruction<strong>s</strong>,如果instruction<strong>s</strong>中没有goto的话,那么pipeline结束,然后执行action set.</li>
-</ol>
-
-
-<p>action的动作有<strong>copy TTL inwards, pop, push-MPLS, push-PBB, push-VLAN, copy TTL outwards, decrement TTL, set, qos, group, output</strong>这些. group 就是用指定的group entry来操作.</p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/25/of-spec/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -547,7 +517,7 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/06/26/of-spec/">of_spec</a>
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
       </li>
     
       <li class="post">
@@ -580,6 +550,7 @@ flow entry的删除有两种方式,一种是controller主动发送request来删�
 <li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
 <li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
 <li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
 <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
