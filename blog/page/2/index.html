@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化. &hellip;">
+  <meta name="description" content="最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈. 于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍. 之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,53 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/08/kernel-timer/">有关linux Kernel Timer的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-08T22:59:00+08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/08/kernel-timer/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.</p>
+
+<p>于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.</p>
+
+<p>之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/08/kernel-timer/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -167,6 +214,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/07/18/coding-style/">编码风格</a>
       </li>
     
@@ -182,16 +233,14 @@
         <a href="/blog/2013/06/11/python-multiple-core/">让python webserver 能好好利用多核</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+    <li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
 <li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
 <li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
 <li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>

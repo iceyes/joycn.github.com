@@ -4,7 +4,7 @@
   <title><![CDATA[iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-07-20T22:15:43+08:00</updated>
+  <updated>2013-12-04T10:27:19+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,94 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[golang中的channel]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/01/go-start/"/>
+    <updated>2013-12-01T15:32:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/01/go-start</id>
+    <content type="html"><![CDATA[<p>最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.</p>
+
+<!-- more -->
+
+
+<p>开始的时候,写一个最简单的程序里,main里只有这么一句代码.然后在运行时就panic了.后来才明白channel的用法.对于向没有缓存的channel里写内容的代码,当写完后,程序会block,只有到其他地方读了channel中的数据,才会继续后续的代码逻辑.所以,当我们只向channel中写5后.会被runtime检查到死锁,然后panic..</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+</span><span class='line'>    <span class="n">var</span> <span class="n">ch</span> <span class="n">chan</span> <span class="kt">int</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="mi">5</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>主动关闭channel.关闭channel的动作,逻辑上只能是可写的channel进行关闭.当channel关闭后,在对channel进行读操作的时候,就需要判断读到的结果是不是ok.只要当返回结果告诉说ok了.才可以使用返回的值.
+比如说下面的代码.如果我们在getData函数中在input, open := &lt;-ch中对open不做检查,那么,for循环将无法退出,即使sendData函数已经关闭了channel..</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">import</span> <span class="s">&quot;fmt&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">:=</span> <span class="n">make</span><span class="p">(</span><span class="n">chan</span> <span class="n">string</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">go</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">getData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Washington&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tripoli&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;London&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Beijing&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tokio&quot;</span>
+</span><span class='line'>    <span class="n">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">getData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">input</span><span class="p">,</span> <span class="n">open</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="n">open</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">break</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">fmt</span><span class="p">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">&quot;%s &quot;</span><span class="p">,</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[编码风格]]></title>

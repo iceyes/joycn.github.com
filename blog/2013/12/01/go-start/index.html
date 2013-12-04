@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>start - iCen DiaMondinG</title>
+  <title>golang中的channel - iCen DiaMondinG</title>
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。 按着蔓草笔记的在Github上搭建Octopress博客的介绍一步一步过来基本没什么问题的。 需要注意的是， &hellip;">
+  <meta name="description" content="最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题. 开始的时候,写一个最简单的程序里,main里只有这么一句代码.然后在运行时就panic了.后来才明白channel的用法. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/05/start/">
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/12/01/go-start/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -68,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Start</h1>
+      <h1 class="entry-title">Golang中的channel</h1>
     
     
       <p class="meta">
@@ -84,7 +85,7 @@
   
 
 
-<time datetime="2013-03-05T13:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+<time datetime="2013-12-01T15:32:00+08:00" pubdate data-updated="true">Dec 1<span>st</span>, 2013</time>
  	
       | <a href="#comments">Comments</a>
      
@@ -93,32 +94,86 @@
   </header>
 
 
-<div class="entry-content"><p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
-
-<p>按着蔓草笔记的<a href="http://xuhehuan.com/783.html">在Github上搭建Octopress博客</a>的介绍一步一步过来基本没什么问题的。</p>
+<div class="entry-content"><p>最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.</p>
 
 <!-- more -->
 
 
-<p>需要注意的是，在安装了git之后，需要进行相应的配置</p>
+<p>开始的时候,写一个最简单的程序里,main里只有这么一句代码.然后在运行时就panic了.后来才明白channel的用法.对于向没有缓存的channel里写内容的代码,当写完后,程序会block,只有到其他地方读了channel中的数据,才会继续后续的代码逻辑.所以,当我们只向channel中写5后.会被runtime检查到死锁,然后panic..</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>1. 在git的安装目录下找到git bash打开
-</span><span class='line'>2. 然后执行 ssh-keygen -t rsa -C <span class="s2">&quot;your_email@youremail.com&quot;</span>生成密钥
-</span><span class='line'>3. 然后把 用户名.ssh<span class="se">\下</span>生成的id_rsa.pub的内容copy下来
-</span><span class='line'>4. 在github上的“Account Settings”&gt;&gt;“SSH Keys”&gt;&gt;“Add another key”，将刚才复制的内容粘贴到key文本框内。
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+</span><span class='line'>    <span class="n">var</span> <span class="n">ch</span> <span class="n">chan</span> <span class="kt">int</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="mi">5</span>
+</span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>然后还要预先建立github pages
-新建repo后，根据提示，来新建pages。要不然后面即是deploy之后，访问也是会报404的..</p>
+<p>主动关闭channel.关闭channel的动作,逻辑上只能是可写的channel进行关闭.当channel关闭后,在对channel进行读操作的时候,就需要判断读到的结果是不是ok.只要当返回结果告诉说ok了.才可以使用返回的值.
+比如说下面的代码.如果我们在getData函数中在input, open := &lt;-ch中对open不做检查,那么,for循环将无法退出,即使sendData函数已经关闭了channel..</p>
 
-<p>第一篇blog完全成了吐槽贴。因为windows编码是GBK的问题，在new_post的时候，老是报错。然后想，总不能每次new_post的时候输入英文名字，然后再去里面改titile。想在服务器上再搞一套这东西，后来想，因为个博客，搞套这个东西太折腾，而且使用起来也不是很方便。然后向想一个比较“优雅”的办法。于是开始把cmd的默认字符集改成了utf-8，结果发现输入法又不能输入汉字了。然后想着找bash for windows之类的东西，结果还是失败了。最后想了想，擦。最简单的方式，就是自己写个python脚本，然后把字符转化下就好了。一行代码的事情。结果搞完了，发现生成的markdown文件名居然是拼音。。擦。。这么折腾下，发现也就是方便了我不用自己手动改titile。</p>
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">import</span> <span class="s">&quot;fmt&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">:=</span> <span class="n">make</span><span class="p">(</span><span class="n">chan</span> <span class="n">string</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">go</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">getData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Washington&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tripoli&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;London&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Beijing&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tokio&quot;</span>
+</span><span class='line'>    <span class="n">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">getData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">input</span><span class="p">,</span> <span class="n">open</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="n">open</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">break</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">fmt</span><span class="p">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">&quot;%s &quot;</span><span class="p">,</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>顺便说下markdown编辑的问题，看起来很难，其实还好。写起来看起来很geek，但是由于我只是写blog，其他地方基本不会用，所以还是找个顺手的工具帮忙来定义格式之类的比较简单。markdownpad不错，但是就是对中文输入法的支持有点烂。先这么用着，有适合的再换~</p>
 </div>
 
 
@@ -141,12 +196,12 @@
   
 
 
-<time datetime="2013-03-05T13:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+<time datetime="2013-12-01T15:32:00+08:00" pubdate data-updated="true">Dec 1<span>st</span>, 2013</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/随笔/'>随笔</a>
+    <a class='category' href='/blog/categories/channel/'>channel</a>, <a class='category' href='/blog/categories/golang/'>golang</a>
   
 </span>
 
@@ -182,8 +237,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/blog/2013/07/18/coding-style/" title="Previous Post: 编码风格">&laquo; 编码风格</a>
       
-        <a class="basic-alignment right" href="/blog/2013/03/05/something-about-vrrp/" title="Next Post: 关于vrrp的一点启发">关于vrrp的一点启发 &raquo;</a>
       
     </p>
   </footer>
@@ -288,8 +343,8 @@ var duoshuoQuery = {short_name:"joycn"};
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/05/start/';
-        var disqus_url = 'http://joycn.github.com/blog/2013/03/05/start/';
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/12/01/go-start/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/12/01/go-start/';
         var disqus_script = 'embed.js';
       
     (function () {

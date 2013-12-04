@@ -9,7 +9,8 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="今天看了下openvswitch的编码风格,感觉整体还不错,这里记录下,以后自己的编码风格也会按着这个来. ">
+  <meta name="description" content="最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题. ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +66,50 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/12/01/go-start/">Golang中的channel</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-01T15:32:00+08:00" pubdate data-updated="true">Dec 1<span>st</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/12/01/go-start/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/12/01/go-start/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -455,53 +500,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/03/08/kernel-timer/">有关linux Kernel Timer的问题</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-03-08T22:59:00+08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2013</time>
- 	
-      | <a href="/blog/2013/03/08/kernel-timer/#comments">Comments</a>
-     
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.</p>
-
-<p>于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.</p>
-
-<p>之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2013/03/08/kernel-timer/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -515,6 +513,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/07/18/coding-style/">编码风格</a>
@@ -532,16 +534,14 @@
         <a href="/blog/2013/06/11/python-multiple-core/">让python webserver 能好好利用多核</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/04/12/kernel-bypass/">kernel_bypass</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+    <li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
 <li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
 <li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
 <li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
