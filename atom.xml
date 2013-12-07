@@ -4,7 +4,7 @@
   <title><![CDATA[iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-12-04T10:27:19+08:00</updated>
+  <updated>2013-12-07T21:11:26+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,48 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[半年的回顾]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/07/career/"/>
+    <updated>2013-12-07T20:34:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/07/career</id>
+    <content type="html"><![CDATA[<p>半年真的一晃就过去了,老是感觉没有太大的收获.可能没有定期回顾自己的原因吧.今天好好把之前经历的一些感想,整理下,记录下.</p>
+
+<!-- more -->
+
+
+<p>半年前第一次尝试出去找工作.首先考虑的是创业公司,发现越来越多的创业公司,更喜欢通过非简历的方式去了解面试者,比如参与过什么开源项目,github上项目.这样可以更直观的了解面试者.it是一个跟工厂里的工人一样,太少接触外面的世界了.所以更多的可能要通过自己的思考,去决定自己的未来(哪里都是这个道理,只是it更极端罢了).</p>
+
+<h2>闷头干活的时候,多抬头看看周围</h2>
+
+<p>这半年最大的收获恐怕就是这个了.越来越深刻的感受到,大道理谁都懂,真正能当回事,或者真正实践起来,除非真正经历过,才会懂,才会去实践.在大公司里,在即成的比较完善的组织里,公司更需要的是螺丝钉,所以对于刚刚参加工作的新人来说,可能在刚入公司的时候可以飞快的发展.但绝大部分人也会很快的遇到瓶颈,极少数的人能有机会去能有项目能让自己持续的发展(还有一部分抓不住机会的人).如果个人只是关注自己工作的部分,而且闷头干活的话,不去多了解外面的人是如果工作,同时多余外界人交流的话.注定也只能做一枚大公司的螺丝钉.</p>
+
+<h2>SHARE</h2>
+
+<p>以前虽然会github,stackoverflow这类网站,但是因为是英语的,自己很少参与进去.这样在帮助自己的同时,其实可以更多的开拓自己的思维.</p>
+
+<h2>just do it, from now on</h2>
+
+<p>当决定做什么,或者想要做什么的时候,不要太犹豫.趁着自己年轻,有犯错的资本,在想做什么的时候,思考清楚后,马上去做.太多的机会会在自己的犹豫和等待中失去.等待永远是年轻最大的敌人.更多的就像电影里那样:&#8221;心里默念1,2,3.如果数到3还没有说服自己不做的理由,那么马上行动吧&#8221;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ethtool with fdir]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir/"/>
+    <updated>2013-12-06T20:09:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir</id>
+    <content type="html"><![CDATA[<p>之前比较奇怪,既然intel的82599以及提供了对flow derector等功能的编程接口,为什么没有能直接进行配置的工具.然后自己再网上搜了下,想想,这东西,通用点的话,肯定就通过ethtool来配置了.</p>
+
+<!-- more -->
+
+
+<p>网上搜了下,还真有.新版的ethtool增加了新的参数 -U -u来对网卡的这些特性进行查看和配置.具体的配置可以直接通过man来进行查看.so easy.</p>
+
+<p>ps:今天一个coding了几年glibc的码农,说了句,&#8221;不想什么都用写代码的方式来解决&#8221;.资深码农都有这思想了,想想,工作到现在,最大的收获就是,拿来主义..</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[golang中的channel]]></title>
