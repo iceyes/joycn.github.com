@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="之前在lvs利用网卡gro gso功能的时候遇到了一个bug,所以就想去了解下kernel关于gro gso的实现.简单介绍网上有一大堆,这里简单介绍下 ">
+  <meta name="description" content="之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老) ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,49 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-15T22:16:00+08:00" pubdate data-updated="true">Mar 15<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/15/pktgen-multiple/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老)</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/15/pktgen-multiple/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -300,6 +343,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/12/07/career/">半年的回顾</a>
       </li>
     
@@ -315,20 +362,18 @@
         <a href="/blog/2013/07/18/coding-style/">编码风格</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/06/25/of-spec/">openflow spec理解</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
 <li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
 <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
 <li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
 <li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
 <li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
 <li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
 <li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>

@@ -4,7 +4,7 @@
   <title><![CDATA[iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-12-07T21:11:26+08:00</updated>
+  <updated>2013-12-07T22:54:13+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -12,6 +12,31 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[lvs总结]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/07/lvs/"/>
+    <updated>2013-12-07T21:34:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/07/lvs</id>
+    <content type="html"><![CDATA[<p>也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分.</p>
+
+<h2>lvs的工作模式</h2>
+
+<p>原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式,需要让rs在回包的时候,经过lvs.或者要做策略路由,或者rs要把default网关指向lvs.总体来说,网络配置都很麻烦.fullnat模式,其实就类似nginx,在像后端做转发的时候.让后端rs认为发情请求的是lvs.在向rs转发的时候,会将数据包的源ip,替换为lvs的snatip.这样,就可以解决nat的跨网段问题.</p>
+
+<h2>抗攻击</h2>
+
+<p>由于lvs本身新建session的问题,以及逻辑代码中对于没有查到到session的数据包的处理实现的原因.当收到ddos攻击时,lvs会显得特别脆弱.所以增加了synproxy的功能.对于其他的非syn flood以外的其他ack,rst ddos,lvs必须要防备,因为原本的逻辑,这些数据包会由lvs服务器本身的tcp协议栈来处理,对lvs会造成巨大的冲击.对于syn攻击,由于lvs收到syn会做新建session的动作,如果有专业firewall的话,lvs对于抗ddos攻击的要求,其实仅仅是能坚持到检测到攻击,firewall开始防御其实就够了.</p>
+
+<h2>对以上两个问题的思考</h2>
+
+<p>synproxy主要存在一个问题,就是对tcp的option支持不太好.</p>
+
+<p>对于内部自己使用的情况,我个人更倾向于加强版的dnat模式.什么是加强板的dnat模式呢?其实就是在dnat的时候,将vip的信息,用其他的方式传递给rs.就像fullnat模式,将信息加入到ip option或者tcp option中.再rs的服务器上添加内核模块,来解析vip信息.再rs回复数据包给rs的时候,内核模块将source ip替换成vip信息.这样有两个好处,第一,不需要对后端rs的内核进行修改,对应用完全透明.第二,实现单边的流量,只有client的请求才会经过lvs,rs的响应可以不通过lvs.跟DR模式相比,又不需要将vip绑定到主机上.但是另外的两个问题是,后端模块需要像lvs一样,维持简单的session.其实,只要跟lvs的session转换保持一致,也就不会有什么问题.还有就是,不能完成synproxy,或者,synproxy的实现会比较复杂.</p>
+
+<p>所以,就像刚刚讨论抗攻击的情况一样,如果没有使用synproxy功能的需求,加强版dnat模式真的是一种很好的方式.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[半年的回顾]]></title>

@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>linux tcp三次握手建立过程 - iCen DiaMondinG</title>
+  <title>lvs总结 - iCen DiaMondinG</title>
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。 &hellip;">
+  <meta name="description" content="也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分. lvs的工作模式 原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/19/three-handshakes/">
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/12/07/lvs/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -68,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">Linux Tcp三次握手建立过程</h1>
+      <h1 class="entry-title">Lvs总结</h1>
     
     
       <p class="meta">
@@ -84,7 +84,7 @@
   
 
 
-<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+<time datetime="2013-12-07T21:34:00+08:00" pubdate data-updated="true">Dec 7<span>th</span>, 2013</time>
  	
       | <a href="#comments">Comments</a>
      
@@ -93,18 +93,23 @@
   </header>
 
 
-<div class="entry-content"><p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+<div class="entry-content"><p>也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分.</p>
 
-<!-- more -->
+<h2>lvs的工作模式</h2>
 
+<p>原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式,需要让rs在回包的时候,经过lvs.或者要做策略路由,或者rs要把default网关指向lvs.总体来说,网络配置都很麻烦.fullnat模式,其实就类似nginx,在像后端做转发的时候.让后端rs认为发情请求的是lvs.在向rs转发的时候,会将数据包的源ip,替换为lvs的snatip.这样,就可以解决nat的跨网段问题.</p>
 
-<p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
+<h2>抗攻击</h2>
 
-<p>tcp_v4_do_rcv首先依旧是一系列的安全检查，当通过安全检查后，对于建立连接的请求，这时sock的状态应该是listen。然后调用 tcp_v4_hnd_req对数据报进行处理。首先调用inet_csk_search_req函数，看是否已经将该请求放入了syn队列中，就是本文 最开头说的第一步是否已经做了，如果做了肯定可以找到对应的request_sock，对于刚刚请求的，肯定是找不到的，然后我们继续在建立连接的 socket队列中查找，如果是已经建立了连接的（客户端重传的syn包）还要判断当前状态是否是time_wait如果是的就返回null，不是那就换回 对应的soket，如果到这时候还没找到，那么就返回原有的sock（没有找到对应的request_sock，就是没有完成本文开始说的第一步，并且没 有对这个请求建立连接）。这时返回到了tcp_v4_do_rcv函数，一般的连接请求肯定返回的还是原来的sock，所以就会进行之后的处理 tcp_rcv_state_process。这个函数主要用来处理接受方面的状态迁移，但是不包括ESTABLISHED和TIME_WAIT。对于目 前，sock的状态肯定是listen，收到syn包，那么调用icsk->icsk_af_ops->conn_request，其实对应 调用的是tcp_v4_conn_request。首先，还是要做一些检查。tcp肯定该不会处理发向多播地址或者组播地址的syn包。通过 inet_csk_reqsk_queue_is_full检查syn queue 是否已经满了(queue->listen_opt->qlen >> queue->listen_opt->max_qlen_log)，如果满的话，同时没有打开syncookie功能的话，只能drop掉该包。然后通过sk_acceptq_is_full检查接受队列是否已经满了(sk->sk_ack_backlog > sk->sk_max_ack_backlog)，并且有没有被处理过的syn（没有收到ack并且没有发生synack重传）。 如果这样的话也会drop掉这个包。通过都没问题，当然就该分配一个新的请求连接放到syn queue中去了。这过程中主要是要根据客户端发过来的数据报中的tcp options进行对新建的request_sock进行初始化。然后调用__tcp_v4_send_synack向client发送synack，并 将这个request_sock添加到syn队列中去。</p>
+<p>由于lvs本身新建session的问题,以及逻辑代码中对于没有查到到session的数据包的处理实现的原因.当收到ddos攻击时,lvs会显得特别脆弱.所以增加了synproxy的功能.对于其他的非syn flood以外的其他ack,rst ddos,lvs必须要防备,因为原本的逻辑,这些数据包会由lvs服务器本身的tcp协议栈来处理,对lvs会造成巨大的冲击.对于syn攻击,由于lvs收到syn会做新建session的动作,如果有专业firewall的话,lvs对于抗ddos攻击的要求,其实仅仅是能坚持到检测到攻击,firewall开始防御其实就够了.</p>
 
-<p>第一步完成。当client返回ack后进行第二步：</p>
+<h2>对以上两个问题的思考</h2>
 
-<p>前面跟第一步的步骤是一样的，分叉口是在进入tcp_v4_hnd_req函数后，当调用inet_csk_search_req查找半连接，肯定是可 以查到这个连接的。然后调用tcp_check_req对这个包进行检查，首先还是进行包结构的检查，检查seq号，如果和刚才的是已建立的半连接的是相 同的，那么重新发送调用req->rsk_ops->rtx_syn_ack其实也就是tcp_v4_send_synack向请求方发送一 个synack。如果ack_seq不是期望的值，那么返回当前sock，然后在tcp_rcv_state_process中返回1，调用 tcp_v4_send_reset进行相应的处理，如果该包设置了rst包或者是本机产生的包，那么我们不做处理。如果是其他的，那么我们就发送rst 包给请求方。如果window大小跟之前有很大不同，那么调用req->rsk_ops->send_ack也就是tcp_send_ack 只是单单返回一个ack。如果包的seq和之前的是一样的，那么清除TCP_FLAG_SYN位。然后检查syn和rst标志位，如果设置了，那么还是调 用tcp_v4_send_reset进行相应的处理。检查都通过 后，inet_csk(sk)->icsk_af_ops->syn_recv_sock来新建新的连接。并从syn 队列中删除对应的syn request。将新的连接添加到sock的accept队列中去。返回到tcp_v4_do_rcv中进入tcp_child_process函数确定 没有其他用户使用该新生成的连接后，如果有的话就将该连接加入到backlog中去。调用tcp_rcv_state_process。调用tcp_ack对该包进行检查，功能后面再了解，进行检查后修改连接的状态为TCP_ESTABLISHED后对该连接进行一些另外的设置。新建完成</p>
+<p>synproxy主要存在一个问题,就是对tcp的option支持不太好.</p>
+
+<p>对于内部自己使用的情况,我个人更倾向于加强版的dnat模式.什么是加强板的dnat模式呢?其实就是在dnat的时候,将vip的信息,用其他的方式传递给rs.就像fullnat模式,将信息加入到ip option或者tcp option中.再rs的服务器上添加内核模块,来解析vip信息.再rs回复数据包给rs的时候,内核模块将source ip替换成vip信息.这样有两个好处,第一,不需要对后端rs的内核进行修改,对应用完全透明.第二,实现单边的流量,只有client的请求才会经过lvs,rs的响应可以不通过lvs.跟DR模式相比,又不需要将vip绑定到主机上.但是另外的两个问题是,后端模块需要像lvs一样,维持简单的session.其实,只要跟lvs的session转换保持一致,也就不会有什么问题.还有就是,不能完成synproxy,或者,synproxy的实现会比较复杂.</p>
+
+<p>所以,就像刚刚讨论抗攻击的情况一样,如果没有使用synproxy功能的需求,加强版dnat模式真的是一种很好的方式.</p>
 </div>
 
 
@@ -127,12 +132,12 @@
   
 
 
-<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+<time datetime="2013-12-07T21:34:00+08:00" pubdate data-updated="true">Dec 7<span>th</span>, 2013</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/kernel/'>kernel</a>, <a class='category' href='/blog/categories/tcp/'>tcp</a>
+    <a class='category' href='/blog/categories/lvs/'>lvs</a>
   
 </span>
 
@@ -168,10 +173,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/03/15/pktgen-multiple/" title="Previous Post: 在使用pktgen如何利用网卡多队列功能">&laquo; 在使用pktgen如何利用网卡多队列功能</a>
+        <a class="basic-alignment left" href="/blog/2013/12/07/career/" title="Previous Post: 半年的回顾">&laquo; 半年的回顾</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/04/12/kernel-bypass/" title="Next Post: kernel_bypass">kernel_bypass &raquo;</a>
       
     </p>
   </footer>
@@ -280,8 +283,8 @@ var duoshuoQuery = {short_name:"joycn"};
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/19/three-handshakes/';
-        var disqus_url = 'http://joycn.github.com/blog/2013/03/19/three-handshakes/';
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/12/07/lvs/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/12/07/lvs/';
         var disqus_script = 'embed.js';
       
     (function () {

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: networking | iCen DiaMondinG]]></title>
+  <title><![CDATA[Category: Networking | iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/blog/categories/networking/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-12-07T21:11:26+08:00</updated>
+  <updated>2013-12-07T22:54:13+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -14,100 +14,55 @@
 
   
   <entry>
-    <title type="html"><![CDATA[VXLAN初探]]></title>
-    <link href="http://joycn.github.com/blog/2013/06/22/information-about-vxlan/"/>
-    <updated>2013-06-22T12:49:00+08:00</updated>
-    <id>http://joycn.github.com/blog/2013/06/22/information-about-vxlan</id>
-    <content type="html"><![CDATA[<p>这两天了解了下VXLAN相关方面的东西,virtual extend lan.算了vlan的拓展,通过网络三层的方式,来解决目前云计算中,vlan的不足之处.</p>
+    <title type="html"><![CDATA[openflow spec理解]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/25/of-spec/"/>
+    <updated>2013-06-25T20:22:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/25/of-spec</id>
+    <content type="html"><![CDATA[<p>内容有点多,一点一点理解,一点一点记录</p>
+
+<p>swtich中含有一个或者多个flow table以及一个group table.</p>
 
 <!-- more -->
 
 
-<h2>VXLAN是为了解决什么问题?</h2>
+<h2>datapath中的处理</h2>
 
-<p>spanning tree的限制:</p>
-
-<p>用户隔离:</p>
-
-<p>在云计算中,由于用户相比传统来说,用户更多,为了在2层上进行隔离,就需要使用vlan来同一个2层中,隔离不同的用户.而vlan本来的设计,只支持4096个id,这样,可能在传统网络中,vlan的数量还够用,但是对于说云计算,一个物理机会虚出很多的实例来,可能对于4096就满足不了我们的要求了.
-而使用三层的方式来做隔离,对于不同用户在同一个三层网络中,就需要云提供商来解决怎么样做隔离的问题,同时,因为是三层隔离,所以用户,也就不能像传统方式那样,去相信2层网络或者三层非ip协议的通信了.</p>
-
-<p>交换机mac表大小的问题</p>
-
-<p>由于虚拟化的原因,造成交换机mac表的内容成倍的增加,不仅要记录物理机的mac地址,还要记录虚拟机的地址,这样,当mac表满了的时候,新的未知目的mac的数据帧都要被进行泛洪</p>
-
-<h2>VXLAN的原理</h2>
-
-<p>VXLAN其实就是在宿主机上对vm发出的数据包,进行重新封装,类似tunel的方式.但是tunel只进行ip层的封装.VXLAN会首先给数据包加上VXLAN相关的信息头,然后会根据路由查找对端的VTEP.进行路由,采用udp数据包的方式,将数据包发送出去.这时候,原本vm发出的数据包的所有内容加上vxlan的头部信息,都成为了udp数据包的内容.然后传递给对端,由对端来进行解析,拆包,然后传递给vm.所以,要相应的调整网络上的mtu,考虑到vm可能会打vlan tag, 加上vxlan的头部,一般调整为1600</p>
-
-<p>跟tunel不同的是,tunel只是在原始ip头前进行封装,然后进行路由转发.而VXLAN是,对整个数据包进行重新封装.</p>
-
-<h2>VXLAN的通信方式</h2>
-
-<p>VXLAN对于vm来说是透明的,vm的方式跟没有VXLAN时的通信方式是没有变化的
-对于宿主机或者支持vxlan的交换机来说,采用以下的通信方式:</p>
-
-<p>点对点:</p>
-
-<p>当vm的发出的数据包到达宿主机后,宿主机首先查找vm对应的VNI,如果查找到的话,那么就根据目的mac 来查找对应的远端VTEP.</p>
-
-<p>对于接受方,当收到vxlan的数据包后,首先检查vxlan的id,然后检查目的mac是否是本机上的vm,如果是的话,就把vxlan的头部拆除掉,把数据包传给vm.同时,学习源mac与源VTEP的ip的映射关系.(类似交换机的方式)</p>
-
-<p>广播:</p>
-
-<p>传统的方式,当vm与一个同网段的ip进行通信时,首先通过arp广播来获取对端ip的mac地址.当数据包到达宿主机后,宿主机同样会对arp进行vxlan信息的封装.只不过,目的ip不会是广播ip,而且是换成了多播(VTEP的ip本来就没有要求在同一个网段.)所以,我们首先要能获取到VNI对应的广播地址,这个主要是通过配置来完成.然后VTEP通过IGMP的方式来通告加入或者离开广播组.所以如果利用多播路由协议,可以提高广播的效率.(这么想想,其实广播的频率还是很高的.所以内核中vxlan中会有一个arp_reduce的函数,来减少广播的次数)</p>
-
-<h2>安全考虑</h2>
-
-<p>因为采用的多播的方式,当有用户恶意加入到某个多播组里,这样就能获取到所有广播的数据包内容.对于VXLAN本身带来的安全风险,可以通过3层的方式来解决,比如说IPsec.另外,有说通过对VTEP打vlan的方式来解决.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[kernel_bypass]]></title>
-    <link href="http://joycn.github.com/blog/2013/04/12/kernel-bypass/"/>
-    <updated>2013-04-12T08:47:00+08:00</updated>
-    <id>http://joycn.github.com/blog/2013/04/12/kernel-bypass</id>
-    <content type="html"><![CDATA[<p>现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行.主流的kernel_bypass的方案有下面这么几个:</p>
-
-<!-- more -->
-
+<p>datapatch中对数据包的处理,主要是通过查询flow table的方式,来对数据包进行相应的处理.先说下概念:</p>
 
 <ul>
-<li><a href="http://www.ntop.org/products/pf_ring/dna/">ntop.org DNA</a>.</li>
-<li><a href="http://info.iet.unipi.it/~luigi/netmap/">netmap.</a></li>
-<li><a href="http://www.intel.com/content/www/us/en/intelligent-systems/intel-technology/packet-processing-is-enhanced-with-software-from-intel-dpdk.html">Intel DPDK.</a></li>
-<li>Myricom <a href="https://www.myricom.com/software/sniffer10g.html">Sniffer10G</a> and <a href="https://www.myricom.com/software/dbl.html">DBL</a>.</li>
-<li>SolarFlare <a href="http://www.openonload.org/">OpenOnload</a>.</li>
-<li><a href="http://www.napatech.com/products/network_adapters.html">Napatech</a>.</li>
+<li>flow table: 类似路由表,里面保存一个一个的entry,通过数据包内容与entry的匹配,来进行相应的处理,而且 flow table跟路由表还真像,一个swtich上可以有多个flow table,按按优先级来进行排序.顺序查找.一个entry的有三部分组成:match fields, priority, counters, instructions, timeouts, cookie. match fields和priority确定表中唯一一个entry.所有匹配掩码,priority为0的entry为table-miss flow entry.类似路由表中的default route.所以对于数据包来说,datapath要做的事情就是, <strong>匹配</strong>, <strong>计数</strong>, <strong>操作</strong>的循环动作</li>
+<li>INSTRUCTIONS: 当匹配到一个entry后,实际要进行的操作.主要是修改数据包,修改action-set, 修改 metadata以及goto table四种操作.具体的操作有Apply-Actions, Clear-Actions, Write-Actions, Write-Metadata, Goto-Table.
+
+<ul>
+<li>Apply-Actions: 这个是直接对数据包进行修改,而不操作action set</li>
+<li>Clear-Actions: 直接清空action set.</li>
+<li>Write-Actions: 将当前的action添加到actions set中</li>
+<li>Write-Metadata: 修改metadata.比如说 new_metadata = old_metadata &amp; ~mask | value &amp; mask</li>
+<li>Goto-Table: pipeline中使用,指定下一个要查找的flow table id. 下一个要查找的id 要大于当前table的id
+flow entry的删除有两种方式,一种是controller主动发送request来删除,另外一个是swtich的超时机制.超时机制主要用到两个时间: <strong>hard_timeout</strong>和<strong>idle_timeout</strong>.当其中一个时间为0就要讲entry删除.如果entry设置了OFPFF_SEND_FLOW_REM,还要通告controller,entry被删除了</li>
+</ul>
+</li>
+<li>group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
+
+<ul>
+<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播</li>
+<li>select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.</li>
+<li>indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关</li>
+<li>fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
+</ul>
+</li>
 </ul>
 
 
-<p>Myricom和Napatech都要用到自己特定的硬件,DNA又需要license.Napatech又需要DNA,又需要硬件.netmap是完全开源的,intel DPDK现在也开源了(网址就是www.dpdk.org).之前看过netmap的介绍,自己也简单试了下,效果没有想象的那么好,而且大部分也修改的驱动也是intel网卡的驱动.既然DPDK已经开源了,就先了解下DPDK方面的东西了.</p>
+<p>所以整体流程如下,数据包从第一个table开始匹配</p>
 
-<h2>总结下DPDK是如何去实现80Mpps的目标的</h2>
-
-<p>正常模式下存在的问题</p>
-
-<ul>
-<li>对于大量的网卡中断,系统已经跟不上中断的速度.</li>
-<li>对于linux进程切换的消耗.</li>
-<li>CPU的速度与PCIe速度之间的差距</li>
-<li>cache与访存的问题</li>
-<li>数据共享的问题</li>
-<li>页表的频繁更新</li>
-</ul>
+<ol>
+<li>由于table-miss entry的存在,所以可以由table-miss entry来决定在table中没有其他匹配的entry时的动作. table-miss entry至少要支持通过CONTROLLER保留端口将数据包转发给controller和使用clear-actions instruction将数据包drop.另外,为了兼容原来的版本,一般也要支持把数据包将给下一个table来进行处理.</li>
+<li>当有匹配的entry时,执行对应的instruction<strong>s</strong>,如果instruction<strong>s</strong>中没有goto的话,那么pipeline结束,然后执行action set.</li>
+</ol>
 
 
-<p>对于大量中断的问题,linux原本已经做了一部分优化,就是napi,按理说应该已经可以很大的减少硬件中断带来的性能损耗.但是,并没有减少硬件中断的次数.在napi的逻辑里,在网卡中断的处理逻辑是,检查该网卡是否已经有需要处理的数据包,如果有的话,不需要再做后续的处理,napi会在处理之前的数据包的时候,把现在的数据包也一起处理了,从而减少了硬中断的工作量.但是,中断的频率并没有改变.DPDK的方法其实,就是取消中断,靠系统,去主动的polling网卡,减少中断的开销.这样,虽然在网卡闲的时候,额外功会比较多,但是在网卡忙的时候,有效功就很高了.</p>
-
-<p>对于进程切换的问题,绑定逻辑进程到固定的cpu,减少进程间的切换带来的消耗.由于处理数据包大部分的工作都交给用户态进程来做.所以,kernel<->userspace之间的切换也少了很多.而且还减少了,进程在不通cpu上切换,带来的numa相关的问题</p>
-
-<p>对于PCIe速度的差异,以及访问内存的差异.跟第一点也有一定的关系,其实通过polling,一次取数据的时候,尽可能多的取数据,减少访存的次数.对于访问内存的差异,可以通过pre-fetch的方式预取,PCIe的话,可以直接通过DDIO将数据包放到L3cache中.</p>
-
-<p>数据共享的问题,其实还是说,逻辑放到了用户态,用户可以自己去实现逻辑,通过合理的方式,减少为了保证数据一致性,使用同步机制带来的性能损耗</p>
-
-<p>页表的更新..这个,不太熟,大概还是因为说,intel通过内核huge page的方式,尽可能的减少页表的更新.后面了解下这里</p>
+<p>action的动作有<strong>copy TTL inwards, pop, push-MPLS, push-PBB, push-VLAN, copy TTL outwards, decrement TTL, set, qos, group, output</strong>这些. group 就是用指定的group entry来操作.</p>
 ]]></content>
   </entry>
   
