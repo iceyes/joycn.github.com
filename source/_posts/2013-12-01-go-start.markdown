@@ -1,0 +1,54 @@
+---
+layout: post
+title: "golang中的channel"
+date: 2013-12-01 15:32
+comments: true
+categories: golang channel
+---
+
+
+最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.
+<!-- more -->
+
+
+开始的时候,写一个最简单的程序里,main里只有这么一句代码.然后在运行时就panic了.后来才明白channel的用法.对于向没有缓存的channel里写内容的代码,当写完后,程序会block,只有到其他地方读了channel中的数据,才会继续后续的代码逻辑.所以,当我们只向channel中写5后.会被runtime检查到死锁,然后panic..
+{% codeblock lang:c %}
+package main
+
+func main(){
+    var ch chan int
+    ch <- 5
+}
+{% endcodeblock %}
+
+主动关闭channel.关闭channel的动作,逻辑上只能是可写的channel进行关闭.当channel关闭后,在对channel进行读操作的时候,就需要判断读到的结果是不是ok.只要当返回结果告诉说ok了.才可以使用返回的值.
+比如说下面的代码.如果我们在getData函数中在input, open := <-ch中对open不做检查,那么,for循环将无法退出,即使sendData函数已经关闭了channel..
+{% codeblock lang:c %}
+package main
+
+import "fmt"
+
+func main() {
+    ch := make(chan string)
+    go sendData(ch)
+    getData(ch)
+}
+func sendData(ch chan string) {
+    ch <- "Washington"
+    ch <- "Tripoli"
+    ch <- "London"
+    ch <- "Beijing"
+    ch <- "Tokio"
+    close(ch)
+}
+func getData(ch chan string) {
+    for {
+        input, open := <-ch
+        if !open {
+            break
+        }
+        fmt.Printf("%s ", input)
+    }
+}
+{% endcodeblock %}

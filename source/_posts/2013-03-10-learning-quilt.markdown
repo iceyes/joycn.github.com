@@ -1,0 +1,96 @@
+---
+layout: post
+title: "quilt&guilt介绍"
+date: 2013-03-10 19:00
+comments: true
+categories: kernel develop
+---
+
+前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个.
+<!-- more -->
+
+先介绍下quilt,quilt是Andrew Morton最初用来维护linux kernel memory子系统的.其实quilt就是用来管理patch的.我们可以pop或者push patch到源码中去,用简单的方式来管理我们的patch.这些话都是比较虚的,从那天大表哥那介绍到的,我感觉最大的好处,还真就是管理patches很方便.传统,比如我们用git来做版本管理,当我们开发了一个新的功能的patch,然后我们去做后续的内容,但是过了好久,我们突然发现,这个patch有bug,我们就要去修改这个功能,这时,版本号还是在增加,我们就会对patch的管理很麻烦.毕竟同一个功能的一个patch,我们不能很清楚的找到他所有的修改信息.当然quilt也不能替代git来做版本管理,因为它并不记录到底我们做过什么样的修改.(所以就又出现了guilt)
+
+下面来介绍下quilt的用法(其实就是翻译的老外的文章)
+
+以2.6.32的kernel为例
+
+进入到kernel的主目录后,我们先新建一个patches的目录,用于存放我们的patch
+{% codeblock lang:bash %}
+$ mkdir patches
+{% endcodeblock %}
+
+然后我们要告诉quilt我们新创建了一个名为patch1的patch,patch1就是用来管理这个patch内容的一个名字.并不是说真的生成一个文件.
+{% codeblock lang:bash %}
+$ quilt new patch1
+Patch patches/patch1 is now on top
+{% endcodeblock %}
+这时候我们通过cat patches/series 就发现多了一行patch1的内容.
+
+quilt需要我们告诉他,在这个新的patch中,我们都修改了那些内容.通过以下这个命令来完成这个功能.比如说我要修改ipvs相关的内容,拿net/netfilter/ipvs/ip_vs_conn.c为例.
+{% codeblock lang:bash %}
+$ quilt add net/netfilter/ipvs/ip_vs_conn.c
+File Makefile added to patch patches/patch1
+{% endcodeblock %}
+
+当我们修改了这个文件后,我们需要告诉quilt来更新这个patch
+{% codeblock lang:bash %}
+$  quilt refresh
+Refreshed patch patches/patch1
+{% endcodeblock %}
+
+这个时候,patches/patch1就会是一个你这次所有更改信息的的一个patch
+{% codeblock lang:bash %}
+$  cat patches/patch1
+
+Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+===================================================================
+--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
++++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+@@ -22,6 +22,8 @@
+  *
+  */
+ 
++
++
+ #define KMSG_COMPONENT "IPVS"
+ #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+{% endcodeblock %}
+
+我们就可以继续修改这个patch,或者说,如果我们觉得这个patch的功能完成了,我们想修改其他的内容,我们可以再新建一个新的patch,比如patch2.这个就是按着patch的先后顺序来的.如果我们想看,现在所有的patch,那么,我们可以通过以下命令来查看,为了方便起见,我又新加了一个patch,好对下面这个命令进行说明
+{% codeblock lang:bash %}
+$ quilt series -v
++ patches/patch1
+= patches/patch2
+{% endcodeblock %}
+This output shows that all three patches are applied, and that the current one is patch3.
+从上面的命令可以看出来,现在我们有两个patch.当前的操作的patch是patch2
+
+If a new kernel version is released, and you wish to port your changes to the new version, quilt can handle this easily with the following steps:
+如果新版本的kernel发布了.我们想把我们的patch应用到新的版本里,quilt也可以帮我们.
+
+首先,我们需要把我们所有的patch全部pop出来.
+{% codeblock lang:bash %}
+$ quilt pop -a
+Patch patches/patch2 appears to be empty, removing
+
+Removing patch patches/patch1
+Restoring net/netfilter/ipvs/ip_vs_conn.c
+
+No patches applied
+{% endcodeblock %}
+
+然后我们把patches文件,拷贝到新的内核目录下.然后执行quilt push来为新版本内核打patch(一次push只打一个patch)
+{% codeblock lang:bash %}
+$ quilt push
+{% endcodeblock %}
+
+如果对应的文件没有什么大的变化(就是不影响我们的patch,那么就会直接patch成功,如果不成功,那么就需要我们使用-f参数,然后手动的去修改区别的地方)
+
+当我们手动修改完后,需要再次quilt refresh来更新patch.
+
+quilt also has options that will automatically email out all of the patches in the series to a group of people or a mailing list, delete specific patches in the middle of the series, go up or down the series of patches until a specific patch is found, and many more powerful options.quilt还可以帮我们把patch自动的发送email给别人.或者删除几个patch中的中间几个等其他的功能.如果我们想做kernel相关的开发,quilt是一个很好用的工具,你不用自己去diff,做patch,从而开发变得简单,就如大表哥说的,这个是提高生产力的工具.
+
+更多的命令还是通过man来查看吧,写的很详细
+
+实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下

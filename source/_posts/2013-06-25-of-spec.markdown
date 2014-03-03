@@ -1,0 +1,38 @@
+---
+layout: post
+title: "openflow spec理解"
+date: 2013-06-25 20:22
+comments: true
+categories: openflow sdn Networking
+---
+
+内容有点多,一点一点理解,一点一点记录
+
+swtich中含有一个或者多个flow table以及一个group table.
+<!-- more -->
+## datapath中的处理 ##
+datapatch中对数据包的处理,主要是通过查询flow table的方式,来对数据包进行相应的处理.先说下概念:
+
++ flow table: 类似路由表,里面保存一个一个的entry,通过数据包内容与entry的匹配,来进行相应的处理,而且 flow table跟路由表还真像,一个swtich上可以有多个flow table,按按优先级来进行排序.顺序查找.一个entry的有三部分组成:match fields, priority, counters, instructions, timeouts, cookie. match fields和priority确定表中唯一一个entry.所有匹配掩码,priority为0的entry为table-miss flow entry.类似路由表中的default route.所以对于数据包来说,datapath要做的事情就是, **匹配**, **计数**, **操作**的循环动作
++ INSTRUCTIONS: 当匹配到一个entry后,实际要进行的操作.主要是修改数据包,修改action-set, 修改 metadata以及goto table四种操作.具体的操作有Apply-Actions, Clear-Actions, Write-Actions, Write-Metadata, Goto-Table.
+	+ Apply-Actions: 这个是直接对数据包进行修改,而不操作action set
+	+ Clear-Actions: 直接清空action set.
+	+ Write-Actions: 将当前的action添加到actions set中
+	+ Write-Metadata: 修改metadata.比如说 new_metadata = old_metadata & ~mask | value & mask
+	+ Goto-Table: pipeline中使用,指定下一个要查找的flow table id. 下一个要查找的id 要大于当前table的id
+flow entry的删除有两种方式,一种是controller主动发送request来删除,另外一个是swtich的超时机制.超时机制主要用到两个时间: **hard_timeout**和**idle_timeout**.当其中一个时间为0就要讲entry删除.如果entry设置了OFPFF_SEND_FLOW_REM,还要通告controller,entry被删除了
++ group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
+	+ all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播
+	+ select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.
+	+ indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关
+	+ fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.
+
+所以整体流程如下,数据包从第一个table开始匹配
+
+1. 由于table-miss entry的存在,所以可以由table-miss entry来决定在table中没有其他匹配的entry时的动作. table-miss entry至少要支持通过CONTROLLER保留端口将数据包转发给controller和使用clear-actions instruction将数据包drop.另外,为了兼容原来的版本,一般也要支持把数据包将给下一个table来进行处理.
+2. 当有匹配的entry时,执行对应的instruction**s**,如果instruction**s**中没有goto的话,那么pipeline结束,然后执行action set.
+
+action的动作有**copy TTL inwards, pop, push-MPLS, push-PBB, push-VLAN, copy TTL outwards, decrement TTL, set, qos, group, output**这些. group 就是用指定的group entry来操作.
+ 
+
+

@@ -1,0 +1,110 @@
+---
+layout: post
+title: "有关linux kernel timer的问题"
+date: 2013-03-08 22:59
+comments: true
+categories: kernel
+---
+
+最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.
+
+于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.
+
+之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了
+<!-- more -->
+
+## 硬件中断的一些内容 ##
+
+Linux启动过程中有一步是调用函数init_IRQ，作用是初始化各个中断向量。
+
+init_IRQ中，调用set_intr_gate(unsigned int n, void *addr)函数注册中断向量，n表示中断向量号，addr是中断响应函数的名字（地址）。
+
+各种跟SMP相关的中断的入口函数是基本相同的，Linux提供了BUILD_INTERRUPT(x,v)宏来完成中断入口函数的定义和中断响应函数的声明,x是中断响应函数的名字，v是中断向量号。中断入口函数名是sys_前缀加上入口函数的名字，如：apic_timer_interrupt是时钟中断响应函数，对应的入口函数是smp_apic_timer_interrupt。
+
+先这么介绍吧,太硬件的东西这里不深入了解了
+
+现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数是timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.然后SMP会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
+whether the local CPU has gone through a quiescent state and invokes
+tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再scheduler_tick减少当前进程的时间片,并且检查时间片是否已经耗光了.
+
+
+## 软中断以及timer_list ##
+
+终于到今天关注的重点了.timer_list相关的内容:
+
+timer_list的一些函数这里就不介绍了,用了都知道.
+
+里面肯定涉及到一个time时间的比较,这里我们说时刻a在时刻b之后，就意味着时间值a≥b。Linux强烈推荐用户使用它所定义的下列4个.为什么呢?因为涉及到jiffies溢出的问题,因为jiffies是一个32位的变量,所以还是很容易溢出的,当溢出了,比较起来肯定会有问题的,所以,内核就用定义了一下几个宏.其实就是类型转化成有符号long型,然后直接做比较(毕竟溢出后,负数就变成正数了,肯定比较起来没问题的,不过.溢出很多,轮一圈当然就比较不出来了.)
+
+{% codeblock %}
+#define time_after(a,b) ((long)(b) - (long)(a) < 0)
+#define time_before(a,b) time_after(b,a)
+#define time_after_eq(a,b) ((long)(a) - (long)(b) >= 0)
+#define time_before_eq(a,b) time_after_eq(b,a)
+{% endcodeblock %}
+
+### 动态内核定时器机制的原理 ###
+
+Linux是怎样为其内核定时器机制提供动态扩展能力的呢？其关键就在于“定时器向量”的概念。所谓“定时器向量”就是指这样一条双向循环定时器队列（对列中的每一个元素都是一个timer_list结构）：对列中的所有定时器都在同一个时刻到期，也即对列中的每一个timer_list结构都具有相同的expires值。显然，可以用一个timer_list结构类型的指针来表示一个定时器向量。显然，定时器expires成员的值与jiffies变量的差值决定了一个定时器将在多长时间后到期。在32位系统中，这个时间差值的最大值应该是0xffffffff。因此如果是基于“定时器向量”基本定义，内核将至少要维护0xffffffff个timer_list结构类型的指针，这显然是不现实的。另一方面，从内核本身这个角度看，它所关心的定时器显然不是那些已经过期而被执行过的定时器（这些定时器完全可以被丢弃），也不是那些要经过很长时间才会到期的定时器，而是那些当前已经到期或者马上就要到期的定时器（注意！时间间隔是以滴答次数为计数单位的）。基于上述考虑，并假定一个定时器要经过interval个时钟滴答后才到期（interval＝expires－jiffies），则Linux采用了下列思想来实现其动态内核定时器机制：对于那些0≤interval≤255的定时器，Linux严格按照定时器向量的基本语义来组织这些定时器，也即Linux内核最关心那些在接下来的255个时钟节拍内就要到期的定时器，因此将它们按照各自不同的expires值组织成256个定时器向量。而对于那些256≤interval≤0xffffffff的定时器，由于他们离到期还有一段时间，因此内核并不关心他们，而是将它们以一种扩展的定时器向量语义（或称为“松散的定时器向量语义”）进行组织。所谓“松散的定时器向量语义”就是指：各定时器的expires值可以互不相同的一个定时器队列。具体的组织方案可以分为两大部分
+
+（1）对于内核最关心的、interval值在［0，255］之间的前256个定时器向量，内核是这样组织它们的：这256个定时器向量被组织在一起组成一个定时器向量数组，并作为数据结构timer_vec_root的一部分，该数据结构定义在kernel/timer.c文件中，如下述代码段所示：
+
+{% codeblock %}
+/*
+ * per-CPU timer vector definitions:
+ */    
+#define TVN_BITS (CONFIG_BASE_SMALL ? 4 : 6)
+#define TVR_BITS (CONFIG_BASE_SMALL ? 6 : 8)
+#define TVN_SIZE (1 << TVN_BITS)
+#define TVR_SIZE (1 << TVR_BITS)
+#define TVN_MASK (TVN_SIZE - 1)
+#define TVR_MASK (TVR_SIZE - 1)
+
+struct tvec {
+    struct list_head vec[TVN_SIZE];            
+};
+
+struct tvec_root {
+    struct list_head vec[TVR_SIZE];    
+};
+
+struct tvec_base {
+    spinlock_t lock;
+    struct timer_list *running_timer;
+    unsigned long timer_jiffies;   
+    unsigned long next_timer; 
+    struct tvec_root tv1;     
+    struct tvec tv2;
+    struct tvec tv3;
+    struct tvec tv4;
+    struct tvec tv5;
+} ____cacheline_aligned;
+{% endcodeblock %}
+ 
+基于数据结构timer_vec_root，Linux定义了一个全局变量tv1，以表示内核所关心的前256个定时器向量。这样内核在处理是否有到期定时器时，它就只从定时器向量数组tv1.vec［256］中的某个定时器向量内进行扫描。而tv1的index字段则指定当前正在扫描定时器向量数组tv1.vec［256］中的哪一个定时器向量，也即该数组的索引，其初值为0，最大值为255（以256为模）。每个时钟节拍时index字段都会加1。显然，index字段所指定的定时器向量tv1.vec［index］中包含了当前时钟节拍内已经到期的所有动态定时器。而定时器向量tv1.vec［index＋k］则包含了接下来第k个时钟节拍时刻将到期的所有动态定时器。当index值又重新变为0时，就意味着内核已经扫描了tv1变量中的所有256个定时器向量。在这种情况下就必须将那些以松散定时器向量语义来组织的定时器向量补充到tv1中来。
+
+（2）而对于内核不关心的、interval值在［0xff，0xffffffff］之间的定时器，它们的到期紧迫程度也随其interval值的不同而不同。显然interval值越小，定时器紧迫程度也越高。因此在将它们以松散定时器向量进行组织时也应该区别对待。通常，定时器的interval值越小，它所处的定时器向量的松散度也就越低（也即向量中的各定时器的expires值相差越小）；而interval值越大，它所处的定时器向量的松散度也就越大（也即向量中的各定时器的expires值相差越大）。内核规定，对于那些满足条件：0x100≤interval≤0x3fff的定时器，只要表达式（interval>>8）具有相同值的定时器都将被组织在同一个松散定时器向量中。因此，为组织所有满足条件0x100≤interval≤0x3fff的定时器，就需要26＝64个松散定时器向量。同样地，为方便起见，这64个松散定时器向量也放在一起形成数组，并作为数据结构timer_vec的一部分。基于数据结构timer_vec，Linux定义了全局变量tv2，来表示这64条松散定时器向量。如上述代码段所示。对于那些满足条件0x4000≤interval≤0xfffff的定时器，只要表达式（interval>>8＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000≤interval≤0xfffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv3全局变量来表示这64个松散定时器向量。对于那些满足条件0x100000≤interval≤0x3ffffff的定时器，只要表达式（interval>>8＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x100000≤interval≤0x3ffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv4全局变量来表示这64个松散定时器向量。对于那些满足条件0x4000000≤interval≤0xffffffff的定时器，只要表达式（interval>>8＋6＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000000≤interval≤0xffffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv5全局变量来表示这64个松散定时器向量。最后，为了引用方便，Linux定义了一个指针数组tvecs[]，来分别指向tv1、tv2、…、tv5结构变量。如上述代码所示。
+
+## 内核动态定时器机制的实现 ##
+
+在内核动态定时器机制的实现中，有三个操作时非常重要的：
+
+（1）将一个定时器插入到它应该所处的定时器向量中。
+
+（2）定时器的迁移，也即将一个定时器从它原来所处的定时器向量迁移到另一个定时器向量中。
+
+（3）扫描并执行当前已经到期的定时器。
+
+### 动态定时器机制的初始化 ###
+
+函数init_timers_cpu()实现对动态定时器机制的初始化。由于2.6以后,tvec_base变成了percpu的数据类型,所以就要对在cpu处于CPU_UP_PREPARE_FROZEN状态的时候对相应的数据结构进行初始化.
+
+### 动态定时器的时钟滴答基准timer_jiffies ###
+
+由于动态定时器是在时钟中断的Bottom Half中被执行的，而从TIMER_SOFTIRQ向量被激活到其run_timer_softirq()函数真正执行这段时间内可能会有几次时钟中断发生。因此内核必须记住上一次运行定时器机制是什么时候，也即内核必须保存上一次运行定时器机制时的jiffies值。为此，Linux在kernel/timer.c文件中定义了全局变量timer_jiffies来表示上一次运行定时器机制时的jiffies值。在run_timer_softirq中,首先检查jiffies是否大于timer_jiffies,只有大于timer_jiffies的时候,才会调用__run_timers函数(这个函数真正处理timer的函数)
+### 定时器迁移操作 ###
+
+由于一个定时器的interval值会随着时间的不断流逝（即jiffies值的不断增大）而不断变小，因此那些原本到期紧迫程度较低的定时器会随着jiffies值的不断增大而成为既把马上到期的定时器。比如定时器向量tv2.vec[0]中的定时器在经过256个时钟滴答后会成为未来256个时钟滴答内会到期的定时器。因此，定时器在内核动态定时器链表中的位置也应相应地随着改变。改变的规则是：当tv1.index重新变为0时（意味着tv1中的256个定时器向量都已被内核扫描一遍了，从而使tv1中的256个定时器向量变为空），则用tv2.vec［index］定时器向量中的定时器去填充tv1，同时使tv2.index加1（它以64为模）。当tv2.index重新变为0（意味着tv2中的64个定时器向量都已经被全部填充到tv1中去了，从而使得tv2变为空），则用tv3.vec［index］定时器向量中的定时器去填充tv2。如此一直类推下去，直到tv5。函数cascade_timers()完成这种定时器迁移操作，该函数只有一个timer_vec结构类型指针的参数tv。
+
+### __run_timers ####
+这个函数会把上次执行time 软中断到目前所有的超时函数都运行一遍.通过两个while循环来完成,外面的循环,每次执行每个tick里所有的超时函数,里面的循环执行一个tick里的每个超时函数
