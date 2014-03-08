@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老) ">
+  <meta name="description" content="连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,49 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/19/three-handshakes/">Linux Tcp三次握手建立过程</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/19/three-handshakes/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/19/three-handshakes/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -343,6 +386,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/12/08/reflect-in-golang/">reflect in golang</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/12/07/lvs/">lvs总结</a>
       </li>
     
@@ -358,10 +405,6 @@
         <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -371,7 +414,7 @@
 <li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
 <li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
 <li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
-<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (2)</a></li>
 <li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
 <li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
 <li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
@@ -419,7 +462,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - joycn -
+  Copyright &copy; 2014 - joycn -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
