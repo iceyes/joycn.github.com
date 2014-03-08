@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老) ">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/page/2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/15/pktgen-multiple/">在使用pktgen如何利用网卡多队列功能</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-15T22:16:00+08:00" pubdate data-updated="true">Mar 15<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/15/pktgen-multiple/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老)</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/15/pktgen-multiple/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/14/kernel-gro-gso/">Kernel中关于gso Gro的一些内容</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-14T22:42:00+08:00" pubdate data-updated="true">Mar 14<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/14/kernel-gro-gso/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前在lvs利用网卡gro gso功能的时候遇到了一个bug,所以就想去了解下kernel关于gro gso的实现.简单介绍网上有一大堆,这里简单介绍下</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/14/kernel-gro-gso/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/10/learning-quilt/">Quilt&guilt介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-10T19:00:00+08:00" pubdate data-updated="true">Mar 10<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/10/learning-quilt/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/10/learning-quilt/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/08/kernel-timer/">有关linux Kernel Timer的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-08T22:59:00+08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/08/kernel-timer/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.</p>
+
+<p>于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.</p>
+
+<p>之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/08/kernel-timer/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/05/something-about-vrrp/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/05/something-about-vrrp/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/05/start/">Start</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-05T13:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/05/start/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
+
+<p>按着蔓草笔记的<a href="http://xuhehuan.com/783.html">在Github上搭建Octopress博客</a>的介绍一步一步过来基本没什么问题的。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/05/start/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
+
+<!--多说js加载开始，一个页面只需要加载一次 -->
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"joycn"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script>
+<!--多说js加载结束，一个页面只需要加载一次 -->
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

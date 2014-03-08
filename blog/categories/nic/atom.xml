@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: nic | iCen DiaMondinG]]></title>
+  <link href="http://joycn.github.com/blog/categories/nic/atom.xml" rel="self"/>
+  <link href="http://joycn.github.com/"/>
+  <updated>2013-12-07T22:54:13+08:00</updated>
+  <id>http://joycn.github.com/</id>
+  <author>
+    <name><![CDATA[joycn]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ethtool with fdir]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir/"/>
+    <updated>2013-12-06T20:09:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir</id>
+    <content type="html"><![CDATA[<p>之前比较奇怪,既然intel的82599以及提供了对flow derector等功能的编程接口,为什么没有能直接进行配置的工具.然后自己再网上搜了下,想想,这东西,通用点的话,肯定就通过ethtool来配置了.</p>
+
+<!-- more -->
+
+
+<p>网上搜了下,还真有.新版的ethtool增加了新的参数 -U -u来对网卡的这些特性进行查看和配置.具体的配置可以直接通过man来进行查看.so easy.</p>
+
+<p>ps:今天一个coding了几年glibc的码农,说了句,"不想什么都用写代码的方式来解决".资深码农都有这思想了,想想,工作到现在,最大的收获就是,拿来主义..</p>
+]]></content>
+  </entry>
+  
+</feed>

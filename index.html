@@ -9,7 +9,7 @@
   <meta name="author" content="joycn">
 
   
-  <meta name="description" content="终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。 按着蔓草笔记的在Github上搭建Octopress博客的介绍一步一步过来基本没什么问题的。 ">
+  <meta name="description" content="也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分. lvs的工作模式 原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,7 +71,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/03/05/start/">Start</a></h1>
+      <h1 class="entry-title"><a href="/blog/2013/12/07/lvs/">Lvs总结</a></h1>
     
     
       <p class="meta">
@@ -87,22 +87,76 @@
   
 
 
-<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
-        
+<time datetime="2013-12-07T21:34:00+08:00" pubdate data-updated="true">Dec 7<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/12/07/lvs/#comments">Comments</a>
+     
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
+  <div class="entry-content"><p>也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分.</p>
 
-<p>按着蔓草笔记的<a href="http://xuhehuan.com/783.html">在Github上搭建Octopress博客</a>的介绍一步一步过来基本没什么问题的。</p>
+<h2>lvs的工作模式</h2>
+
+<p>原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式,需要让rs在回包的时候,经过lvs.或者要做策略路由,或者rs要把default网关指向lvs.总体来说,网络配置都很麻烦.fullnat模式,其实就类似nginx,在像后端做转发的时候.让后端rs认为发情请求的是lvs.在向rs转发的时候,会将数据包的源ip,替换为lvs的snatip.这样,就可以解决nat的跨网段问题.</p>
+
+<h2>抗攻击</h2>
+
+<p>由于lvs本身新建session的问题,以及逻辑代码中对于没有查到到session的数据包的处理实现的原因.当收到ddos攻击时,lvs会显得特别脆弱.所以增加了synproxy的功能.对于其他的非syn flood以外的其他ack,rst ddos,lvs必须要防备,因为原本的逻辑,这些数据包会由lvs服务器本身的tcp协议栈来处理,对lvs会造成巨大的冲击.对于syn攻击,由于lvs收到syn会做新建session的动作,如果有专业firewall的话,lvs对于抗ddos攻击的要求,其实仅仅是能坚持到检测到攻击,firewall开始防御其实就够了.</p>
+
+<h2>对以上两个问题的思考</h2>
+
+<p>synproxy主要存在一个问题,就是对tcp的option支持不太好.</p>
+
+<p>对于内部自己使用的情况,我个人更倾向于加强版的dnat模式.什么是加强板的dnat模式呢?其实就是在dnat的时候,将vip的信息,用其他的方式传递给rs.就像fullnat模式,将信息加入到ip option或者tcp option中.再rs的服务器上添加内核模块,来解析vip信息.再rs回复数据包给rs的时候,内核模块将source ip替换成vip信息.这样有两个好处,第一,不需要对后端rs的内核进行修改,对应用完全透明.第二,实现单边的流量,只有client的请求才会经过lvs,rs的响应可以不通过lvs.跟DR模式相比,又不需要将vip绑定到主机上.但是另外的两个问题是,后端模块需要像lvs一样,维持简单的session.其实,只要跟lvs的session转换保持一致,也就不会有什么问题.还有就是,不能完成synproxy,或者,synproxy的实现会比较复杂.</p>
+
+<p>所以,就像刚刚讨论抗攻击的情况一样,如果没有使用synproxy功能的需求,加强版dnat模式真的是一种很好的方式.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/12/07/career/">半年的回顾</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-07T20:34:00+08:00" pubdate data-updated="true">Dec 7<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/12/07/career/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>半年真的一晃就过去了,老是感觉没有太大的收获.可能没有定期回顾自己的原因吧.今天好好把之前经历的一些感想,整理下,记录下.</p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2013/03/05/start/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2013/12/07/career/">Read on &rarr;</a>
     </footer>
   
 
@@ -114,7 +168,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a></h1>
+      <h1 class="entry-title"><a href="/blog/2013/12/06/ethtool-with-fdir/">Ethtool With Fdir</a></h1>
     
     
       <p class="meta">
@@ -130,18 +184,326 @@
   
 
 
-<time datetime="2013-03-05T23:31:00+08:00" pubdate data-updated="true">Mar 5<span>th</span>, 2013</time>
-        
+<time datetime="2013-12-06T20:09:00+08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/12/06/ethtool-with-fdir/#comments">Comments</a>
+     
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,</div>
+  <div class="entry-content"><p>之前比较奇怪,既然intel的82599以及提供了对flow derector等功能的编程接口,为什么没有能直接进行配置的工具.然后自己再网上搜了下,想想,这东西,通用点的话,肯定就通过ethtool来配置了.</p>
+
+</div>
   
   
     <footer>
-      <a rel="full-article" href="/blog/2013/03/05/something-about-vrrp/">Read on &rarr;</a>
+      <a rel="full-article" href="/blog/2013/12/06/ethtool-with-fdir/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/12/01/go-start/">Golang中的channel</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-01T15:32:00+08:00" pubdate data-updated="true">Dec 1<span>st</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/12/01/go-start/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/12/01/go-start/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/18/coding-style/">编码风格</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-18T09:55:00+08:00" pubdate data-updated="true">Jul 18<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/07/18/coding-style/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天看了下openvswitch的编码风格,感觉整体还不错,这里记录下,以后自己的编码风格也会按着这个来.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/18/coding-style/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/25/of-spec/">Openflow Spec理解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-25T20:22:00+08:00" pubdate data-updated="true">Jun 25<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/06/25/of-spec/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>内容有点多,一点一点理解,一点一点记录</p>
+
+<p>swtich中含有一个或者多个flow table以及一个group table.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/25/of-spec/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/22/information-about-vxlan/">VXLAN初探</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-22T12:49:00+08:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/06/22/information-about-vxlan/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这两天了解了下VXLAN相关方面的东西,virtual extend lan.算了vlan的拓展,通过网络三层的方式,来解决目前云计算中,vlan的不足之处.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/22/information-about-vxlan/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/11/python-multiple-core/">让python Webserver 能好好利用多核</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/06/11/python-multiple-core/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/06/11/python-multiple-core/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/12/kernel-bypass/">Kernel_bypass</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T08:47:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/04/12/kernel-bypass/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行.主流的kernel_bypass的方案有下面这么几个:</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/04/12/kernel-bypass/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/19/three-handshakes/">Linux Tcp三次握手建立过程</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+ 	
+      | <a href="/blog/2013/03/19/three-handshakes/#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/03/19/three-handshakes/">Read on &rarr;</a>
     </footer>
   
 
@@ -149,6 +511,8 @@
     </article>
   
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -161,11 +525,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/05/start/">start</a>
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2013/03/05/something-about-vrrp/">关于vrrp的一点启发</a>
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
       </li>
     
   </ul>
@@ -173,7 +549,23 @@
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
 <li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
 
   </ul>
@@ -182,7 +574,27 @@
 
 
 
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
 
+<!--多说js加载开始，一个页面只需要加载一次 -->
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"joycn"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = 'http://static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script>
+<!--多说js加载结束，一个页面只需要加载一次 -->
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
   
 </aside>
 
@@ -195,6 +607,19 @@
 
 </footer>
   
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 

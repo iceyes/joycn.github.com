@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>让python webserver 能好好利用多核 - iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/06/11/python-multiple-core/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">让python Webserver 能好好利用多核</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
+ 	
+      | <a href="#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+<!-- more -->
+
+
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实怎么滴还是要先简单实际测下,看到底会有多大的损失.</p>
+
+<p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
+
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多事情没做,打算关注下其他的方面,算是自己视野的拓展吧.一直在底层呆着,会呆的&#8230;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">joycn</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-11T22:25:00+08:00" pubdate data-updated="true">Jun 11<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/kernel/'>kernel</a>, <a class='category' href='/blog/categories/python/'>python</a>, <a class='category' href='/blog/categories/web/'>web</a>
+  
+</span>
+
+
+    </p>
+    
+      ﻿<div class="sharing">
+  
+  <script type="text/javascript" charset="utf-8">
+(function(){
+  var _w = 90 , _h = 24;
+  var param = {
+    url:location.href,
+    type:'2',
+    count:'1', /**是否显示分享数，1显示(可选)*/
+    appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
+    title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
+    pic:'', /**分享图片的路径(可选)*/
+    ralateUid:'2408658977', /**关联用户的UID，分享微博会@该用户(可选)*/
+	language:'zh_cn', /**设置语言，zh_cn|zh_tw(可选)*/
+    rnd:new Date().valueOf()
+  }
+  var temp = [];
+  for( var p in param ){
+    temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
+  }
+  document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
+})()
+</script>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/04/12/kernel-bypass/" title="Previous Post: kernel_bypass">&laquo; kernel_bypass</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/06/22/information-about-vxlan/" title="Next Post: VXLAN初探">VXLAN初探 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite">﻿<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"joycn"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END --></div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/06/11/python-multiple-core/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/06/11/python-multiple-core/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

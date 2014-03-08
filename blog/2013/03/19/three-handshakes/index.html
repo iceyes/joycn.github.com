@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>linux tcp三次握手建立过程 - iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/19/three-handshakes/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Linux Tcp三次握手建立过程</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+ 	
+      | <a href="#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+<!-- more -->
+
+
+<p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
+
+<p>tcp_v4_do_rcv首先依旧是一系列的安全检查，当通过安全检查后，对于建立连接的请求，这时sock的状态应该是listen。然后调用 tcp_v4_hnd_req对数据报进行处理。首先调用inet_csk_search_req函数，看是否已经将该请求放入了syn队列中，就是本文 最开头说的第一步是否已经做了，如果做了肯定可以找到对应的request_sock，对于刚刚请求的，肯定是找不到的，然后我们继续在建立连接的 socket队列中查找，如果是已经建立了连接的（客户端重传的syn包）还要判断当前状态是否是time_wait如果是的就返回null，不是那就换回 对应的soket，如果到这时候还没找到，那么就返回原有的sock（没有找到对应的request_sock，就是没有完成本文开始说的第一步，并且没 有对这个请求建立连接）。这时返回到了tcp_v4_do_rcv函数，一般的连接请求肯定返回的还是原来的sock，所以就会进行之后的处理 tcp_rcv_state_process。这个函数主要用来处理接受方面的状态迁移，但是不包括ESTABLISHED和TIME_WAIT。对于目 前，sock的状态肯定是listen，收到syn包，那么调用icsk->icsk_af_ops->conn_request，其实对应 调用的是tcp_v4_conn_request。首先，还是要做一些检查。tcp肯定该不会处理发向多播地址或者组播地址的syn包。通过 inet_csk_reqsk_queue_is_full检查syn queue 是否已经满了(queue->listen_opt->qlen >> queue->listen_opt->max_qlen_log)，如果满的话，同时没有打开syncookie功能的话，只能drop掉该包。然后通过sk_acceptq_is_full检查接受队列是否已经满了(sk->sk_ack_backlog > sk->sk_max_ack_backlog)，并且有没有被处理过的syn（没有收到ack并且没有发生synack重传）。 如果这样的话也会drop掉这个包。通过都没问题，当然就该分配一个新的请求连接放到syn queue中去了。这过程中主要是要根据客户端发过来的数据报中的tcp options进行对新建的request_sock进行初始化。然后调用__tcp_v4_send_synack向client发送synack，并 将这个request_sock添加到syn队列中去。</p>
+
+<p>第一步完成。当client返回ack后进行第二步：</p>
+
+<p>前面跟第一步的步骤是一样的，分叉口是在进入tcp_v4_hnd_req函数后，当调用inet_csk_search_req查找半连接，肯定是可 以查到这个连接的。然后调用tcp_check_req对这个包进行检查，首先还是进行包结构的检查，检查seq号，如果和刚才的是已建立的半连接的是相 同的，那么重新发送调用req->rsk_ops->rtx_syn_ack其实也就是tcp_v4_send_synack向请求方发送一 个synack。如果ack_seq不是期望的值，那么返回当前sock，然后在tcp_rcv_state_process中返回1，调用 tcp_v4_send_reset进行相应的处理，如果该包设置了rst包或者是本机产生的包，那么我们不做处理。如果是其他的，那么我们就发送rst 包给请求方。如果window大小跟之前有很大不同，那么调用req->rsk_ops->send_ack也就是tcp_send_ack 只是单单返回一个ack。如果包的seq和之前的是一样的，那么清除TCP_FLAG_SYN位。然后检查syn和rst标志位，如果设置了，那么还是调 用tcp_v4_send_reset进行相应的处理。检查都通过 后，inet_csk(sk)->icsk_af_ops->syn_recv_sock来新建新的连接。并从syn 队列中删除对应的syn request。将新的连接添加到sock的accept队列中去。返回到tcp_v4_do_rcv中进入tcp_child_process函数确定 没有其他用户使用该新生成的连接后，如果有的话就将该连接加入到backlog中去。调用tcp_rcv_state_process。调用tcp_ack对该包进行检查，功能后面再了解，进行检查后修改连接的状态为TCP_ESTABLISHED后对该连接进行一些另外的设置。新建完成</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">joycn</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-19T08:40:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/kernel/'>kernel</a>, <a class='category' href='/blog/categories/tcp/'>tcp</a>
+  
+</span>
+
+
+    </p>
+    
+      ﻿<div class="sharing">
+  
+  <script type="text/javascript" charset="utf-8">
+(function(){
+  var _w = 90 , _h = 24;
+  var param = {
+    url:location.href,
+    type:'2',
+    count:'1', /**是否显示分享数，1显示(可选)*/
+    appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
+    title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
+    pic:'', /**分享图片的路径(可选)*/
+    ralateUid:'2408658977', /**关联用户的UID，分享微博会@该用户(可选)*/
+	language:'zh_cn', /**设置语言，zh_cn|zh_tw(可选)*/
+    rnd:new Date().valueOf()
+  }
+  var temp = [];
+  for( var p in param ){
+    temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
+  }
+  document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
+})()
+</script>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/03/15/pktgen-multiple/" title="Previous Post: 在使用pktgen如何利用网卡多队列功能">&laquo; 在使用pktgen如何利用网卡多队列功能</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/04/12/kernel-bypass/" title="Next Post: kernel_bypass">kernel_bypass &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite">﻿<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"joycn"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END --></div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/19/three-handshakes/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/03/19/three-handshakes/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>quilt&guilt介绍 - iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个. 先介绍下quilt,quilt是Andrew Morton最初用来维护linux kernel memory子系统的. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/03/10/learning-quilt/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Quilt&guilt介绍</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-10T19:00:00+08:00" pubdate data-updated="true">Mar 10<span>th</span>, 2013</time>
+ 	
+      | <a href="#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个.</p>
+
+<!-- more -->
+
+
+<p>先介绍下quilt,quilt是Andrew Morton最初用来维护linux kernel memory子系统的.其实quilt就是用来管理patch的.我们可以pop或者push patch到源码中去,用简单的方式来管理我们的patch.这些话都是比较虚的,从那天大表哥那介绍到的,我感觉最大的好处,还真就是管理patches很方便.传统,比如我们用git来做版本管理,当我们开发了一个新的功能的patch,然后我们去做后续的内容,但是过了好久,我们突然发现,这个patch有bug,我们就要去修改这个功能,这时,版本号还是在增加,我们就会对patch的管理很麻烦.毕竟同一个功能的一个patch,我们不能很清楚的找到他所有的修改信息.当然quilt也不能替代git来做版本管理,因为它并不记录到底我们做过什么样的修改.(所以就又出现了guilt)</p>
+
+<p>下面来介绍下quilt的用法(其实就是翻译的老外的文章)</p>
+
+<p>以2.6.32的kernel为例</p>
+
+<p>进入到kernel的主目录后,我们先新建一个patches的目录,用于存放我们的patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkdir patches
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们要告诉quilt我们新创建了一个名为patch1的patch,patch1就是用来管理这个patch内容的一个名字.并不是说真的生成一个文件.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt new patch1
+</span><span class='line'>Patch patches/patch1 is now on top
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时候我们通过cat patches/series 就发现多了一行patch1的内容.</p>
+
+<p>quilt需要我们告诉他,在这个新的patch中,我们都修改了那些内容.通过以下这个命令来完成这个功能.比如说我要修改ipvs相关的内容,拿net/netfilter/ipvs/ip_vs_conn.c为例.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt add net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>File Makefile added to patch patches/patch1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当我们修改了这个文件后,我们需要告诉quilt来更新这个patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> quilt refresh
+</span><span class='line'>Refreshed patch patches/patch1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个时候,patches/patch1就会是一个你这次所有更改信息的的一个patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> cat patches/patch1
+</span><span class='line'>
+</span><span class='line'>Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'><span class="o">===================================================================</span>
+</span><span class='line'>--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>+++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>@@ -22,6 +22,8 @@
+</span><span class='line'>  *
+</span><span class='line'>  */
+</span><span class='line'>
+</span><span class='line'>+
+</span><span class='line'>+
+</span><span class='line'> <span class="c">#define KMSG_COMPONENT &quot;IPVS&quot;</span>
+</span><span class='line'> <span class="c">#define pr_fmt(fmt) KMSG_COMPONENT &quot;: &quot; fmt</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们就可以继续修改这个patch,或者说,如果我们觉得这个patch的功能完成了,我们想修改其他的内容,我们可以再新建一个新的patch,比如patch2.这个就是按着patch的先后顺序来的.如果我们想看,现在所有的patch,那么,我们可以通过以下命令来查看,为了方便起见,我又新加了一个patch,好对下面这个命令进行说明</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt series -v
+</span><span class='line'>+ patches/patch1
+</span><span class='line'><span class="o">=</span> patches/patch2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This output shows that all three patches are applied, and that the current one is patch3.
+从上面的命令可以看出来,现在我们有两个patch.当前的操作的patch是patch2</p>
+
+<p>If a new kernel version is released, and you wish to port your changes to the new version, quilt can handle this easily with the following steps:
+如果新版本的kernel发布了.我们想把我们的patch应用到新的版本里,quilt也可以帮我们.</p>
+
+<p>首先,我们需要把我们所有的patch全部pop出来.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt pop -a
+</span><span class='line'>Patch patches/patch2 appears to be empty, removing
+</span><span class='line'>
+</span><span class='line'>Removing patch patches/patch1
+</span><span class='line'>Restoring net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>
+</span><span class='line'>No patches applied
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们把patches文件,拷贝到新的内核目录下.然后执行quilt push来为新版本内核打patch(一次push只打一个patch)</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt push
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果对应的文件没有什么大的变化(就是不影响我们的patch,那么就会直接patch成功,如果不成功,那么就需要我们使用-f参数,然后手动的去修改区别的地方)</p>
+
+<p>当我们手动修改完后,需要再次quilt refresh来更新patch.</p>
+
+<p>quilt also has options that will automatically email out all of the patches in the series to a group of people or a mailing list, delete specific patches in the middle of the series, go up or down the series of patches until a specific patch is found, and many more powerful options.quilt还可以帮我们把patch自动的发送email给别人.或者删除几个patch中的中间几个等其他的功能.如果我们想做kernel相关的开发,quilt是一个很好用的工具,你不用自己去diff,做patch,从而开发变得简单,就如大表哥说的,这个是提高生产力的工具.</p>
+
+<p>更多的命令还是通过man来查看吧,写的很详细</p>
+
+<p>实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">joycn</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-10T19:00:00+08:00" pubdate data-updated="true">Mar 10<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/develop/'>develop</a>, <a class='category' href='/blog/categories/kernel/'>kernel</a>
+  
+</span>
+
+
+    </p>
+    
+      ﻿<div class="sharing">
+  
+  <script type="text/javascript" charset="utf-8">
+(function(){
+  var _w = 90 , _h = 24;
+  var param = {
+    url:location.href,
+    type:'2',
+    count:'1', /**是否显示分享数，1显示(可选)*/
+    appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
+    title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
+    pic:'', /**分享图片的路径(可选)*/
+    ralateUid:'2408658977', /**关联用户的UID，分享微博会@该用户(可选)*/
+	language:'zh_cn', /**设置语言，zh_cn|zh_tw(可选)*/
+    rnd:new Date().valueOf()
+  }
+  var temp = [];
+  for( var p in param ){
+    temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
+  }
+  document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
+})()
+</script>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/03/08/kernel-timer/" title="Previous Post: 有关linux kernel timer的问题">&laquo; 有关linux kernel timer的问题</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/03/14/kernel-gro-gso/" title="Next Post: kernel中关于gso gro的一些内容">kernel中关于gso gro的一些内容 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite">﻿<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"joycn"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END --></div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/03/10/learning-quilt/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/03/10/learning-quilt/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

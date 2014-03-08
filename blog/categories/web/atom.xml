@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: web | iCen DiaMondinG]]></title>
+  <link href="http://joycn.github.com/blog/categories/web/atom.xml" rel="self"/>
+  <link href="http://joycn.github.com/"/>
+  <updated>2013-12-07T22:54:13+08:00</updated>
+  <id>http://joycn.github.com/</id>
+  <author>
+    <name><![CDATA[joycn]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[让python webserver 能好好利用多核]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/11/python-multiple-core/"/>
+    <updated>2013-06-11T22:25:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/11/python-multiple-core</id>
+    <content type="html"><![CDATA[<p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+<!-- more -->
+
+
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实怎么滴还是要先简单实际测下,看到底会有多大的损失.</p>
+
+<p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
+
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多事情没做,打算关注下其他的方面,算是自己视野的拓展吧.一直在底层呆着,会呆的...</p>
+]]></content>
+  </entry>
+  
+</feed>

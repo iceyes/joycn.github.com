@@ -4,7 +4,7 @@
   <title><![CDATA[iCen DiaMondinG]]></title>
   <link href="http://joycn.github.com/atom.xml" rel="self"/>
   <link href="http://joycn.github.com/"/>
-  <updated>2013-03-05T23:50:29+08:00</updated>
+  <updated>2013-12-07T22:54:13+08:00</updated>
   <id>http://joycn.github.com/</id>
   <author>
     <name><![CDATA[joycn]]></name>
@@ -14,9 +14,1664 @@
 
   
   <entry>
+    <title type="html"><![CDATA[lvs总结]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/07/lvs/"/>
+    <updated>2013-12-07T21:34:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/07/lvs</id>
+    <content type="html"><![CDATA[<p>也搞了两年的lvs了,也该好好总结下lvs了.更多的是说下自己做的修改的部分.</p>
+
+<h2>lvs的工作模式</h2>
+
+<p>原生的lvs有三种工作模式:dr,nat,tunnel.国外似乎用lvs的地方不多,国内用lvs的,总体来看都是从baidu出来的衍生版本.fullnat模式,其实就是为了解决lvs的nat模式,需要让rs在回包的时候,经过lvs.或者要做策略路由,或者rs要把default网关指向lvs.总体来说,网络配置都很麻烦.fullnat模式,其实就类似nginx,在像后端做转发的时候.让后端rs认为发情请求的是lvs.在向rs转发的时候,会将数据包的源ip,替换为lvs的snatip.这样,就可以解决nat的跨网段问题.</p>
+
+<h2>抗攻击</h2>
+
+<p>由于lvs本身新建session的问题,以及逻辑代码中对于没有查到到session的数据包的处理实现的原因.当收到ddos攻击时,lvs会显得特别脆弱.所以增加了synproxy的功能.对于其他的非syn flood以外的其他ack,rst ddos,lvs必须要防备,因为原本的逻辑,这些数据包会由lvs服务器本身的tcp协议栈来处理,对lvs会造成巨大的冲击.对于syn攻击,由于lvs收到syn会做新建session的动作,如果有专业firewall的话,lvs对于抗ddos攻击的要求,其实仅仅是能坚持到检测到攻击,firewall开始防御其实就够了.</p>
+
+<h2>对以上两个问题的思考</h2>
+
+<p>synproxy主要存在一个问题,就是对tcp的option支持不太好.</p>
+
+<p>对于内部自己使用的情况,我个人更倾向于加强版的dnat模式.什么是加强板的dnat模式呢?其实就是在dnat的时候,将vip的信息,用其他的方式传递给rs.就像fullnat模式,将信息加入到ip option或者tcp option中.再rs的服务器上添加内核模块,来解析vip信息.再rs回复数据包给rs的时候,内核模块将source ip替换成vip信息.这样有两个好处,第一,不需要对后端rs的内核进行修改,对应用完全透明.第二,实现单边的流量,只有client的请求才会经过lvs,rs的响应可以不通过lvs.跟DR模式相比,又不需要将vip绑定到主机上.但是另外的两个问题是,后端模块需要像lvs一样,维持简单的session.其实,只要跟lvs的session转换保持一致,也就不会有什么问题.还有就是,不能完成synproxy,或者,synproxy的实现会比较复杂.</p>
+
+<p>所以,就像刚刚讨论抗攻击的情况一样,如果没有使用synproxy功能的需求,加强版dnat模式真的是一种很好的方式.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[半年的回顾]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/07/career/"/>
+    <updated>2013-12-07T20:34:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/07/career</id>
+    <content type="html"><![CDATA[<p>半年真的一晃就过去了,老是感觉没有太大的收获.可能没有定期回顾自己的原因吧.今天好好把之前经历的一些感想,整理下,记录下.</p>
+
+<!-- more -->
+
+
+<p>半年前第一次尝试出去找工作.首先考虑的是创业公司,发现越来越多的创业公司,更喜欢通过非简历的方式去了解面试者,比如参与过什么开源项目,github上项目.这样可以更直观的了解面试者.it是一个跟工厂里的工人一样,太少接触外面的世界了.所以更多的可能要通过自己的思考,去决定自己的未来(哪里都是这个道理,只是it更极端罢了).</p>
+
+<h2>闷头干活的时候,多抬头看看周围</h2>
+
+<p>这半年最大的收获恐怕就是这个了.越来越深刻的感受到,大道理谁都懂,真正能当回事,或者真正实践起来,除非真正经历过,才会懂,才会去实践.在大公司里,在即成的比较完善的组织里,公司更需要的是螺丝钉,所以对于刚刚参加工作的新人来说,可能在刚入公司的时候可以飞快的发展.但绝大部分人也会很快的遇到瓶颈,极少数的人能有机会去能有项目能让自己持续的发展(还有一部分抓不住机会的人).如果个人只是关注自己工作的部分,而且闷头干活的话,不去多了解外面的人是如果工作,同时多余外界人交流的话.注定也只能做一枚大公司的螺丝钉.</p>
+
+<h2>SHARE</h2>
+
+<p>以前虽然会github,stackoverflow这类网站,但是因为是英语的,自己很少参与进去.这样在帮助自己的同时,其实可以更多的开拓自己的思维.</p>
+
+<h2>just do it, from now on</h2>
+
+<p>当决定做什么,或者想要做什么的时候,不要太犹豫.趁着自己年轻,有犯错的资本,在想做什么的时候,思考清楚后,马上去做.太多的机会会在自己的犹豫和等待中失去.等待永远是年轻最大的敌人.更多的就像电影里那样:&#8221;心里默念1,2,3.如果数到3还没有说服自己不做的理由,那么马上行动吧&#8221;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ethtool with fdir]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir/"/>
+    <updated>2013-12-06T20:09:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/06/ethtool-with-fdir</id>
+    <content type="html"><![CDATA[<p>之前比较奇怪,既然intel的82599以及提供了对flow derector等功能的编程接口,为什么没有能直接进行配置的工具.然后自己再网上搜了下,想想,这东西,通用点的话,肯定就通过ethtool来配置了.</p>
+
+<!-- more -->
+
+
+<p>网上搜了下,还真有.新版的ethtool增加了新的参数 -U -u来对网卡的这些特性进行查看和配置.具体的配置可以直接通过man来进行查看.so easy.</p>
+
+<p>ps:今天一个coding了几年glibc的码农,说了句,&#8221;不想什么都用写代码的方式来解决&#8221;.资深码农都有这思想了,想想,工作到现在,最大的收获就是,拿来主义..</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[golang中的channel]]></title>
+    <link href="http://joycn.github.com/blog/2013/12/01/go-start/"/>
+    <updated>2013-12-01T15:32:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/12/01/go-start</id>
+    <content type="html"><![CDATA[<p>最近自己学习下golang,发现里面的channel真是个神奇的东西..
+这个东西主要是用来做同步的.这个帖子主要是记录下在channel学习过程终于到的一些问题.</p>
+
+<!-- more -->
+
+
+<p>开始的时候,写一个最简单的程序里,main里只有这么一句代码.然后在运行时就panic了.后来才明白channel的用法.对于向没有缓存的channel里写内容的代码,当写完后,程序会block,只有到其他地方读了channel中的数据,才会继续后续的代码逻辑.所以,当我们只向channel中写5后.会被runtime检查到死锁,然后panic..</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+</span><span class='line'>    <span class="n">var</span> <span class="n">ch</span> <span class="n">chan</span> <span class="kt">int</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="mi">5</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>主动关闭channel.关闭channel的动作,逻辑上只能是可写的channel进行关闭.当channel关闭后,在对channel进行读操作的时候,就需要判断读到的结果是不是ok.只要当返回结果告诉说ok了.才可以使用返回的值.
+比如说下面的代码.如果我们在getData函数中在input, open := &lt;-ch中对open不做检查,那么,for循环将无法退出,即使sendData函数已经关闭了channel..</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">package</span> <span class="n">main</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">import</span> <span class="s">&quot;fmt&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">:=</span> <span class="n">make</span><span class="p">(</span><span class="n">chan</span> <span class="n">string</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">go</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">getData</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">sendData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Washington&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tripoli&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;London&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Beijing&quot;</span>
+</span><span class='line'>    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">&quot;Tokio&quot;</span>
+</span><span class='line'>    <span class="n">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">func</span> <span class="n">getData</span><span class="p">(</span><span class="n">ch</span> <span class="n">chan</span> <span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">input</span><span class="p">,</span> <span class="n">open</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="n">open</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">break</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="n">fmt</span><span class="p">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">&quot;%s &quot;</span><span class="p">,</span> <span class="n">input</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[编码风格]]></title>
+    <link href="http://joycn.github.com/blog/2013/07/18/coding-style/"/>
+    <updated>2013-07-18T09:55:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/07/18/coding-style</id>
+    <content type="html"><![CDATA[<p>今天看了下openvswitch的编码风格,感觉整体还不错,这里记录下,以后自己的编码风格也会按着这个来.</p>
+
+<!--more -->
+
+
+<pre><code>                  ## Open vSwitch Coding Style ##
+</code></pre>
+
+<h3>BASICS</h3>
+
+<ul>
+<li><p>Limit lines to 79 characters.</p></li>
+<li><p>Use form feeds (control+L) to divide long source files into logical
+pieces.  A form feed should appear as the only character on a line.</p></li>
+<li><p>Do not use tabs for indentation.</p></li>
+<li><p>Avoid trailing spaces on lines.</p></li>
+</ul>
+
+
+<h3>NAMING</h3>
+
+<ul>
+<li><p>Use names that explain the purpose of a function or object.</p></li>
+<li><p>Use underscores to separate words in an identifier: multi_word_name.</p></li>
+<li><p>Use lowercase for most names.  Use uppercase for macros, macro
+parameters, and members of enumerations.</p></li>
+<li><p>Give arrays names that are plural.</p></li>
+<li><p>Pick a unique name prefix (ending with an underscore) for each
+module, and apply that prefix to all of that module&#8217;s externally
+visible names.  Names of macro parameters, struct and union members,
+and parameters in function prototypes are not considered externally
+visible for this purpose.</p></li>
+<li><p>Do not use names that begin with _.  If you need a name for
+&#8220;internal use only&#8221;, use __ as a suffix instead of a prefix.</p></li>
+<li><p>Avoid negative names: &#8220;found&#8221; is a better name than &#8220;not_found&#8221;.</p></li>
+<li><p>In names, a &#8220;size&#8221; is a count of bytes, a &#8220;length&#8221; is a count of
+characters.  A buffer has size, but a string has length.  The length
+of a string does not include the null terminator, but the size of the
+buffer that contains the string does.</p></li>
+</ul>
+
+
+<h3>COMMENTS</h3>
+
+<ul>
+<li><p>Comments should be written as full sentences that start with a
+capital letter and end with a period.  Put two spaces between
+sentences.</p></li>
+<li><p>Write block comments as shown below.  You may put the /<em> and </em>/ on
+the same line as comment text if you prefer.</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*
+</span><span class='line'>     * We redirect stderr to /dev/null because we often want to remove all
+</span><span class='line'>     * traffic control configuration on a port so its in a known state.  If
+</span><span class='line'>     * this done when there is no such configuration, tc complains, so we just
+</span><span class='line'>     * always ignore it.
+</span><span class='line'>     */</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Each function and each variable declared outside a function, and
+each struct, union, and typedef declaration should be preceded by a
+comment.  See FUNCTION DEFINITIONS below for function comment
+guidelines.</p></li>
+<li><p>Each struct and union member should each have an inline comment that
+explains its meaning.  structs and unions with many members should be
+additionally divided into logical groups of members by block comments,
+e.g.:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* An event that will wake the following call to poll_block(). */
+</span><span class='line'>    struct poll_waiter {
+</span><span class='line'>        /* Set when the waiter is created. */
+</span><span class='line'>        struct list node;           /* Element in global waiters list. */
+</span><span class='line'>        int fd;                     /* File descriptor. */
+</span><span class='line'>        short int events;           /* Events to wait for (POLLIN, POLLOUT). */
+</span><span class='line'>        poll_fd_func *function;     /* Callback function, if any, or null. */
+</span><span class='line'>        void *aux;                  /* Argument to callback function. */
+</span><span class='line'>        struct backtrace *backtrace; /* Event that created waiter, or null. */
+</span><span class='line'>
+</span><span class='line'>        /* Set only when poll_block() is called. */
+</span><span class='line'>        struct pollfd *pollfd;      /* Pointer to element of the pollfds array
+</span><span class='line'>                                       (null if added from a callback). */
+</span><span class='line'>    };</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Use XXX or FIXME comments to mark code that needs work.</p></li>
+<li><p>Don&#8217;t use // comments.</p></li>
+<li><p>Don&#8217;t comment out or #if 0 out code.  Just remove it.  The code that
+was there will still be in version control history.</p></li>
+</ul>
+
+
+<h3>FUNCTIONS</h3>
+
+<ul>
+<li><p>Put the return type, function name, and the braces that surround the
+function&#8217;s code on separate lines, all starting in column 0.</p></li>
+<li><p>Before each function definition, write a comment that describes the
+function&#8217;s purpose, including each parameter, the return value, and
+side effects.  References to argument names should be given in
+single-quotes, e.g. &#8216;arg&#8217;.  The comment should not include the
+function name, nor need it follow any formal structure.  The comment
+does not need to describe how a function does its work, unless this
+information is needed to use the function correctly (this is often
+better done with comments <em>inside</em> the function).</p></li>
+<li><p>Simple static functions do not need a comment.</p></li>
+<li><p>Within a file, non-static functions should come first, in the order
+that they are declared in the header file, followed by static
+functions.  Static functions should be in one or more separate pages
+(separated by form feed characters) in logical groups.  A commonly
+useful way to divide groups is by &#8220;level&#8221;, with high-level functions
+first, followed by groups of progressively lower-level functions.
+This makes it easy for the program&#8217;s reader to see the top-down
+structure by reading from top to bottom.</p></li>
+<li><p>All function declarations and definitions should include a
+prototype.  Empty parentheses, e.g. &#8220;int foo();&#8221;, do not include a
+prototype (they state that the function&#8217;s parameters are unknown);
+write &#8220;void&#8221; in parentheses instead, e.g. &#8220;int foo(void);&#8221;.</p></li>
+<li><p><strong>Prototypes for static functions should either all go at the top of
+the file, separated into groups by blank lines, or they should appear
+at the top of each page of functions.  Don&#8217;t comment individual
+prototypes, but a comment on each group of prototypes is often
+appropriate.</strong></p></li>
+<li><p>In the absence of good reasons for another order, the following
+parameter order is preferred.  One notable exception is that data
+parameters and their corresponding size parameters should be paired.</p>
+
+<ul>
+<li>The primary object being manipulated, if any (equivalent to the
+ &#8220;this&#8221; pointer in C++).</li>
+<li>Input-only parameters.</li>
+<li>Input/output parameters.</li>
+<li>Output-only parameters.</li>
+<li>Status parameter.</li>
+</ul>
+
+
+<p>Example:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* Stores the features supported by 'netdev' into each of '*current',
+</span><span class='line'>     * '*advertised', '*supported', and '*peer' that are non-null.  Each value
+</span><span class='line'>     * is a bitmap of "enum ofp_port_features" bits, in host byte order.
+</span><span class='line'>     * Returns 0 if successful, otherwise a positive errno value.  On failure,
+</span><span class='line'>     * all of the passed-in values are set to 0. */
+</span><span class='line'>    int
+</span><span class='line'>    netdev_get_features(struct netdev *netdev,
+</span><span class='line'>                        uint32_t *current, uint32_t *advertised,
+</span><span class='line'>                        uint32_t *supported, uint32_t *peer)
+</span><span class='line'>    {
+</span><span class='line'>        ...
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Functions that destroy an instance of a dynamically-allocated type
+should accept and ignore a null pointer argument.  Code that calls
+such a function (including the C standard library function free())
+should omit a null-pointer check.  We find that this usually makes
+code easier to read.</p>
+
+<h3>FUNCTION PROTOTYPES</h3>
+
+<ul>
+<li>Put the return type and function name on the same line in a function
+prototype:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>static const struct option_class *get_option_class(int code);</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Omit parameter names from function prototypes when the names do not
+give useful information, e.g.:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>int netdev_get_mtu(const struct netdev *, int *mtup);</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>STATEMENTS</h3>
+
+<ul>
+<li>Indent each level of code with 4 spaces.  Use BSD-style brace
+placement:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (a()) {
+</span><span class='line'>        b();
+</span><span class='line'>        d();
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Put a space between &#8220;if&#8221;, &#8220;while&#8221;, &#8220;for&#8221;, etc. and the expressions
+that follow them.</p></li>
+<li><p>Enclose single statements in braces:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (a > b) {
+</span><span class='line'>        return a;
+</span><span class='line'>    } else {
+</span><span class='line'>        return b;
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Use comments and blank lines to divide long functions into logical
+groups of statements.</p></li>
+<li><p>Avoid assignments inside &#8220;if&#8221; and &#8220;while&#8221; conditions.</p></li>
+<li><p>Do not put gratuitous parentheses around the expression in a return
+statement, that is, write &#8220;return 0;&#8221; and not &#8220;return(0);&#8221;</p></li>
+<li><p>Write only one statement per line.</p></li>
+<li><p>Indent &#8220;switch&#8221; statements like this:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>switch (conn->state) {
+</span><span class='line'>    case S_RECV:
+</span><span class='line'>        error = run_connection_input(conn);
+</span><span class='line'>        break;
+</span><span class='line'>
+</span><span class='line'>    case S_PROCESS:
+</span><span class='line'>        error = 0;
+</span><span class='line'>        break;
+</span><span class='line'>
+</span><span class='line'>    case S_SEND:
+</span><span class='line'>        error = run_connection_output(conn);
+</span><span class='line'>        break;
+</span><span class='line'>
+</span><span class='line'>    default:
+</span><span class='line'>        NOT_REACHED();
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>&#8220;switch&#8221; statements with very short, uniform cases may use an
+abbreviated style:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>switch (code) {
+</span><span class='line'>    case 200: return "OK";
+</span><span class='line'>    case 201: return "Created";
+</span><span class='line'>    case 202: return "Accepted";
+</span><span class='line'>    case 204: return "No Content";
+</span><span class='line'>    default: return "Unknown";
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Use &#8220;for (;;)&#8221; to write an infinite loop.</p></li>
+<li><p>In an if/else construct where one branch is the &#8220;normal&#8221; or &#8220;common&#8221;
+case and the other branch is the &#8220;uncommon&#8221; or &#8220;error&#8221; case, put the
+common case after the &#8220;if&#8221;, not the &#8220;else&#8221;.  This is a form of
+documentation.  It also places the most important code in sequential
+order without forcing the reader to visually skip past less important
+details.  (Some compilers also assume that the &#8220;if&#8221; branch is the more
+common case, so this can be a real form of optimization as well.)</p></li>
+</ul>
+
+
+<h3>MACROS</h3>
+
+<ul>
+<li><p>Don&#8217;t define an object-like macro if an enum can be used instead.</p></li>
+<li><p>Don&#8217;t define a function-like macro if a &#8220;static inline&#8221; function
+can be used instead.</p></li>
+<li><p>If a macro&#8217;s definition contains multiple statements, enclose them
+with &#8220;do { &#8230; } while (0)&#8221; to allow them to work properly in all
+syntactic circumstances.</p></li>
+<li><p><strong>Do use macros to eliminate the need to update different parts of a
+single file in parallel, e.g. a list of enums and an array that gives
+the name of each enum.</strong>  For example:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* Logging importance levels. */
+</span><span class='line'>    #define VLOG_LEVELS                             \
+</span><span class='line'>        VLOG_LEVEL(EMER, LOG_ALERT)                 \
+</span><span class='line'>        VLOG_LEVEL(ERR, LOG_ERR)                    \
+</span><span class='line'>        VLOG_LEVEL(WARN, LOG_WARNING)               \
+</span><span class='line'>        VLOG_LEVEL(INFO, LOG_NOTICE)                \
+</span><span class='line'>        VLOG_LEVEL(DBG, LOG_DEBUG)
+</span><span class='line'>    enum vlog_level {
+</span><span class='line'>    #define VLOG_LEVEL(NAME, SYSLOG_LEVEL) VLL_##NAME,
+</span><span class='line'>        VLOG_LEVELS
+</span><span class='line'>    #undef VLOG_LEVEL
+</span><span class='line'>        VLL_N_LEVELS
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>    /* Name for each logging level. */
+</span><span class='line'>    static const char *level_names[VLL_N_LEVELS] = {
+</span><span class='line'>    #define VLOG_LEVEL(NAME, SYSLOG_LEVEL) #NAME,
+</span><span class='line'>        VLOG_LEVELS
+</span><span class='line'>    #undef VLOG_LEVEL
+</span><span class='line'>    };</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>SOURCE FILES</h3>
+
+<ul>
+<li>Each source file should state its license in a comment at the very
+top, followed by a comment explaining the purpose of the code that is
+in that file. The comment should explain how the code in the file
+relates to code in other files. The goal is to allow a programmer to
+quickly figure out where a given module fits into the larger system.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>The first non-comment line in a .c source file should be:
+</span><span class='line'>
+</span><span class='line'>    #include &lt;config.h>
+</span><span class='line'>
+</span><span class='line'>#include directives should appear in the following order:
+</span><span class='line'>
+</span><span class='line'>    1. #include &lt;config.h>
+</span><span class='line'>
+</span><span class='line'>    2. The module's own headers, if any.  Including this before any
+</span><span class='line'>       other header (besides &lt;config.h>) ensures that the module's
+</span><span class='line'>       header file is self-contained (see HEADER FILES) below.
+</span><span class='line'>
+</span><span class='line'>    3. Standard C library headers and other system headers, preferably
+</span><span class='line'>       in alphabetical order.  (Occasionally one encounters a set of
+</span><span class='line'>       system headers that must be included in a particular order, in
+</span><span class='line'>       which case that order must take precedence.)
+</span><span class='line'>
+</span><span class='line'>    4. Open vSwitch headers, in alphabetical order.  Use "", not &lt;>,
+</span><span class='line'>       to specify Open vSwitch header names.</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>HEADER FILES</h3>
+
+<ul>
+<li>Each header file should start with its license, as described under
+SOURCE FILES above, followed by a &#8220;header guard&#8221; to make the header
+file idempotent, like so:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#ifndef NETDEV_H
+</span><span class='line'>    #define NETDEV_H 1
+</span><span class='line'>
+</span><span class='line'>    ...
+</span><span class='line'>
+</span><span class='line'>    #endif /* netdev.h */</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Header files should be self-contained; that is, they should #include
+whatever additional headers are required, without requiring the client
+to #include them for it.</p></li>
+<li><p>Don&#8217;t define the members of a struct or union in a header file,
+unless client code is actually intended to access them directly or if
+the definition is otherwise actually needed (e.g. inline functions
+defined in the header need them).</p></li>
+<li><p>Similarly, don&#8217;t #include a header file just for the declaration of
+a struct or union tag (e.g. just for &#8220;struct <name>;&#8221;).  Just declare
+the tag yourself.  This reduces the number of header file
+dependencies.</p></li>
+</ul>
+
+
+<h3>TYPES</h3>
+
+<ul>
+<li><p>Use typedefs <strong>sparingly</strong>.  Code is clearer if the actual type is
+visible at the point of declaration.  Do not, in general, declare a
+typedef for a struct, union, or enum.  Do not declare a typedef for a
+pointer type, because this can be very confusing to the reader.</p></li>
+<li><p>A function type is a good use for a typedef because it can clarify
+code.  The type should be a function type, not a pointer-to-function
+type.  That way, the typedef name can be used to declare function
+prototypes.  (It cannot be used for function definitions, because that
+is explicitly prohibited by C89 and C99.)</p></li>
+<li><p>You may assume that &#8220;char&#8221; is exactly 8 bits and that &#8220;int&#8221; and
+&#8220;long&#8221; are at least 32 bits.</p></li>
+<li><p>Don&#8217;t assume that &#8220;long&#8221; is big enough to hold a pointer.  If you
+need to cast a pointer to an integer, use &#8220;intptr_t&#8221; or &#8220;uintptr_t&#8221;
+from &lt;stdint.h>.</p></li>
+<li><p>Use the int<N><em>t and uint<N></em>t types from &lt;stdint.h> for exact-width
+integer types.  Use the PRId<N>, PRIu<N>, and PRIx<N> macros from
+&lt;inttypes.h> for formatting them with printf() and related functions.</p></li>
+<li><p>Use %zu to format size_t with printf().</p></li>
+<li><p>Use bit-fields sparingly.  Do not use bit-fields for layout of
+network protocol fields or in other circumstances where the exact
+format is important.</p></li>
+<li><p>Declare bit-fields to be type &#8220;unsigned int&#8221; or &#8220;signed int&#8221;.  Do
+<em>not</em> declare bit-fields of type &#8220;int&#8221;: C89 allows these to be either
+signed or unsigned according to the compiler&#8217;s whim.  (A 1-bit
+bit-field of type &#8220;int&#8221; may have a range of -1&#8230;0!)  Do not declare
+bit-fields of type _Bool or enum or any other type, because these are
+not portable.</p></li>
+<li><p>Try to order structure members such that they pack well on a system
+with 2-byte &#8220;short&#8221;, 4-byte &#8220;int&#8221;, and 4- or 8-byte &#8220;long&#8221; and pointer
+types.  Prefer clear organization over size optimization unless you
+are convinced there is a size or speed benefit.</p></li>
+<li><p>Pointer declarators bind to the variable name, not the type name.
+Write &#8220;int <em>x&#8221;, not &#8220;int</em> x&#8221; and definitely not &#8220;int * x&#8221;.</p></li>
+</ul>
+
+
+<h3>EXPRESSIONS</h3>
+
+<ul>
+<li>Put one space on each side of infix binary and ternary operators:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>* / %
+</span><span class='line'>    + -
+</span><span class='line'>    &lt;&lt; >>
+</span><span class='line'>    &lt; &lt;= > >=
+</span><span class='line'>    == !=
+</span><span class='line'>    &
+</span><span class='line'>    ^
+</span><span class='line'>    |
+</span><span class='line'>    &&
+</span><span class='line'>    ||
+</span><span class='line'>    ?:
+</span><span class='line'>    = += -= *= /= %= &= ^= |= &lt;&lt;= >>=</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Avoid comma operators.</p></li>
+<li><p>Do not put any white space around postfix, prefix, or grouping
+operators:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>() [] -> .
+</span><span class='line'>    ! ~ ++ -- + - * &
+</span><span class='line'>
+</span><span class='line'>Exception 1: Put a space after (but not before) the "sizeof" keyword.
+</span><span class='line'>Exception 2: Put a space between the () used in a cast and the
+</span><span class='line'>expression whose type is cast: (void *) 0.</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Break long lines before the ternary operators ? and :, rather than
+after them, e.g.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>return (out_port != VIGP_CONTROL_PATH
+</span><span class='line'>            ? alpheus_output_port(dp, skb, out_port)
+</span><span class='line'>            : alpheus_output_control(dp, skb, fwd_save_skb(skb),
+</span><span class='line'>                                     VIGR_ACTION));</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Do not parenthesize the operands of &amp;&amp; and || unless operator
+precedence makes it necessary, or unless the operands are themselves
+expressions that use &amp;&amp; and ||.  Thus:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (!isdigit((unsigned char)s[0])
+</span><span class='line'>        || !isdigit((unsigned char)s[1])
+</span><span class='line'>        || !isdigit((unsigned char)s[2])) {
+</span><span class='line'>        printf("string %s does not start with 3-digit code\n", s);
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (rule && (!best || rule->priority > best->priority)) {
+</span><span class='line'>        best = rule;
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Do parenthesize a subexpression that must be split across more than
+one line, e.g.:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>*idxp = ((l1_idx &lt;&lt; PORT_ARRAY_L1_SHIFT)
+</span><span class='line'>             | (l2_idx &lt;&lt; PORT_ARRAY_L2_SHIFT)
+</span><span class='line'>             | (l3_idx &lt;&lt; PORT_ARRAY_L3_SHIFT));</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Try to avoid casts.  Don&#8217;t cast the return value of malloc().</p></li>
+<li><p>The &#8220;sizeof&#8221; operator is unique among C operators in that it accepts
+two very different kinds of operands: an expression or a type.  In
+general, prefer to specify an expression, e.g. &#8220;int <em>x =
+xmalloc(sizeof </em>x);&#8221;.  When the operand of sizeof is an expression,
+there is no need to parenthesize that operand, and please don&#8217;t.</p></li>
+<li><p>Use the ARRAY_SIZE macro from lib/util.h to calculate the number of
+elements in an array.</p></li>
+<li><p>When using a relational operator like &#8220;&lt;&#8221; or &#8220;==&#8221;, put an expression
+or variable argument on the left and a constant argument on the
+right, e.g. &#8220;x == 0&#8221;, <em>not</em> &#8220;0 == x&#8221;.</p></li>
+</ul>
+
+
+<h3>BLANK LINES</h3>
+
+<ul>
+<li>Put one blank line between top-level definitions of functions and
+global variables.</li>
+</ul>
+
+
+<h3>C DIALECT</h3>
+
+<ul>
+<li><p>Some C99 features are OK because they are widely implemented even in
+older compilers:</p>
+
+<ul>
+<li><p>Flexible array members (e.g. struct { int foo[]; }).</p></li>
+<li><p>&#8220;static inline&#8221; functions (but no other forms of &#8220;inline&#8221;, for
+which GCC and C99 have differing interpretations).</p></li>
+<li><p>&#8220;long long&#8221;</p></li>
+<li><p>&lt;stdint.h> and &lt;inttypes.h>.</p></li>
+<li><p>bool and &lt;stdbool.h>, but don&#8217;t assume that bool or _Bool can
+only take on the values 0 or 1, because this behavior can&#8217;t be
+simulated on C89 compilers.</p></li>
+</ul>
+</li>
+<li><p>Don&#8217;t use other C99 features that are not widely implemented in
+older compilers:</p>
+
+<ul>
+<li><p>Don&#8217;t use designated initializers (e.g. don&#8217;t write &#8220;struct foo
+foo = {.a = 1};&#8221; or &#8220;int a[] = {[2] = 5};&#8221;).</p></li>
+<li><p>Don&#8217;t mix declarations and code within a block.</p></li>
+<li><p>Don&#8217;t use declarations in iteration statements (e.g. don&#8217;t write
+&#8220;for (int i = 0; i &lt; 10; i++)&#8221;).</p></li>
+<li><p>Don&#8217;t put a trailing comma in an enum declaration (e.g. don&#8217;t
+write &#8220;enum { x = 1, };&#8221;).</p></li>
+</ul>
+</li>
+<li><p>As a matter of style, avoid // comments.</p></li>
+<li><p>Avoid using GCC extensions unless you also add a fallback for
+non-GCC compilers.  You can, however, use GCC extensions and C99
+features in code that compiles only on GNU/Linux (such as
+lib/netdev-linux.c), because GCC is the system compiler there.</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[openflow spec理解]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/25/of-spec/"/>
+    <updated>2013-06-25T20:22:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/25/of-spec</id>
+    <content type="html"><![CDATA[<p>内容有点多,一点一点理解,一点一点记录</p>
+
+<p>swtich中含有一个或者多个flow table以及一个group table.</p>
+
+<!-- more -->
+
+
+<h2>datapath中的处理</h2>
+
+<p>datapatch中对数据包的处理,主要是通过查询flow table的方式,来对数据包进行相应的处理.先说下概念:</p>
+
+<ul>
+<li>flow table: 类似路由表,里面保存一个一个的entry,通过数据包内容与entry的匹配,来进行相应的处理,而且 flow table跟路由表还真像,一个swtich上可以有多个flow table,按按优先级来进行排序.顺序查找.一个entry的有三部分组成:match fields, priority, counters, instructions, timeouts, cookie. match fields和priority确定表中唯一一个entry.所有匹配掩码,priority为0的entry为table-miss flow entry.类似路由表中的default route.所以对于数据包来说,datapath要做的事情就是, <strong>匹配</strong>, <strong>计数</strong>, <strong>操作</strong>的循环动作</li>
+<li>INSTRUCTIONS: 当匹配到一个entry后,实际要进行的操作.主要是修改数据包,修改action-set, 修改 metadata以及goto table四种操作.具体的操作有Apply-Actions, Clear-Actions, Write-Actions, Write-Metadata, Goto-Table.
+
+<ul>
+<li>Apply-Actions: 这个是直接对数据包进行修改,而不操作action set</li>
+<li>Clear-Actions: 直接清空action set.</li>
+<li>Write-Actions: 将当前的action添加到actions set中</li>
+<li>Write-Metadata: 修改metadata.比如说 new_metadata = old_metadata &amp; ~mask | value &amp; mask</li>
+<li>Goto-Table: pipeline中使用,指定下一个要查找的flow table id. 下一个要查找的id 要大于当前table的id
+flow entry的删除有两种方式,一种是controller主动发送request来删除,另外一个是swtich的超时机制.超时机制主要用到两个时间: <strong>hard_timeout</strong>和<strong>idle_timeout</strong>.当其中一个时间为0就要讲entry删除.如果entry设置了OFPFF_SEND_FLOW_REM,还要通告controller,entry被删除了</li>
+</ul>
+</li>
+<li>group table: 一个交换机里只有一个group table.由多个group entry组成.由四部分组成: group id, group type, counters, action buckets. group entry主要是做一些特定的转发功能,比如说loadbalance, failover.普通的flow table entry只能做从固定的某个port做转发,或者drop,group table可能做到,转发给随机的一个port(用来做lb),第一个可用的port(failover).其实他也是action里的一个动作,比如说,我有100个entry,里面有一个通过port1来转发的动作.我可以直接把这个动作定义为group entry.这样每次做修改的时候,就可以通过修改entry来完成这100个entry的动作.为什么要修改,其实就是上面说的那几个目的,lb,failover等等. type类型有以下几个:
+
+<ul>
+<li>all: 每个budget都会被执行,当执行每个budget的时候,数据包都会被复制一份.主要用来实现广播,多播</li>
+<li>select: 只执行其中一个budget,选择budget的算法,与openflow无关(用户自己定义).当该group entry 有一个port down后,自动选择其他的port.</li>
+<li>indirec: 只支持一个budget,用来实现更快更有效的收敛方式.比如说下一跳网关</li>
+<li>fast failover:执行第一个live budget.这样可以省下一次向controller发送请求的rtt.</li>
+</ul>
+</li>
+</ul>
+
+
+<p>所以整体流程如下,数据包从第一个table开始匹配</p>
+
+<ol>
+<li>由于table-miss entry的存在,所以可以由table-miss entry来决定在table中没有其他匹配的entry时的动作. table-miss entry至少要支持通过CONTROLLER保留端口将数据包转发给controller和使用clear-actions instruction将数据包drop.另外,为了兼容原来的版本,一般也要支持把数据包将给下一个table来进行处理.</li>
+<li>当有匹配的entry时,执行对应的instruction<strong>s</strong>,如果instruction<strong>s</strong>中没有goto的话,那么pipeline结束,然后执行action set.</li>
+</ol>
+
+
+<p>action的动作有<strong>copy TTL inwards, pop, push-MPLS, push-PBB, push-VLAN, copy TTL outwards, decrement TTL, set, qos, group, output</strong>这些. group 就是用指定的group entry来操作.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[VXLAN初探]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/22/information-about-vxlan/"/>
+    <updated>2013-06-22T12:49:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/22/information-about-vxlan</id>
+    <content type="html"><![CDATA[<p>这两天了解了下VXLAN相关方面的东西,virtual extend lan.算了vlan的拓展,通过网络三层的方式,来解决目前云计算中,vlan的不足之处.</p>
+
+<!-- more -->
+
+
+<h2>VXLAN是为了解决什么问题?</h2>
+
+<p>spanning tree的限制:</p>
+
+<p>用户隔离:</p>
+
+<p>在云计算中,由于用户相比传统来说,用户更多,为了在2层上进行隔离,就需要使用vlan来同一个2层中,隔离不同的用户.而vlan本来的设计,只支持4096个id,这样,可能在传统网络中,vlan的数量还够用,但是对于说云计算,一个物理机会虚出很多的实例来,可能对于4096就满足不了我们的要求了.
+而使用三层的方式来做隔离,对于不同用户在同一个三层网络中,就需要云提供商来解决怎么样做隔离的问题,同时,因为是三层隔离,所以用户,也就不能像传统方式那样,去相信2层网络或者三层非ip协议的通信了.</p>
+
+<p>交换机mac表大小的问题</p>
+
+<p>由于虚拟化的原因,造成交换机mac表的内容成倍的增加,不仅要记录物理机的mac地址,还要记录虚拟机的地址,这样,当mac表满了的时候,新的未知目的mac的数据帧都要被进行泛洪</p>
+
+<h2>VXLAN的原理</h2>
+
+<p>VXLAN其实就是在宿主机上对vm发出的数据包,进行重新封装,类似tunel的方式.但是tunel只进行ip层的封装.VXLAN会首先给数据包加上VXLAN相关的信息头,然后会根据路由查找对端的VTEP.进行路由,采用udp数据包的方式,将数据包发送出去.这时候,原本vm发出的数据包的所有内容加上vxlan的头部信息,都成为了udp数据包的内容.然后传递给对端,由对端来进行解析,拆包,然后传递给vm.所以,要相应的调整网络上的mtu,考虑到vm可能会打vlan tag, 加上vxlan的头部,一般调整为1600</p>
+
+<p>跟tunel不同的是,tunel只是在原始ip头前进行封装,然后进行路由转发.而VXLAN是,对整个数据包进行重新封装.</p>
+
+<h2>VXLAN的通信方式</h2>
+
+<p>VXLAN对于vm来说是透明的,vm的方式跟没有VXLAN时的通信方式是没有变化的
+对于宿主机或者支持vxlan的交换机来说,采用以下的通信方式:</p>
+
+<p>点对点:</p>
+
+<p>当vm的发出的数据包到达宿主机后,宿主机首先查找vm对应的VNI,如果查找到的话,那么就根据目的mac 来查找对应的远端VTEP.</p>
+
+<p>对于接受方,当收到vxlan的数据包后,首先检查vxlan的id,然后检查目的mac是否是本机上的vm,如果是的话,就把vxlan的头部拆除掉,把数据包传给vm.同时,学习源mac与源VTEP的ip的映射关系.(类似交换机的方式)</p>
+
+<p>广播:</p>
+
+<p>传统的方式,当vm与一个同网段的ip进行通信时,首先通过arp广播来获取对端ip的mac地址.当数据包到达宿主机后,宿主机同样会对arp进行vxlan信息的封装.只不过,目的ip不会是广播ip,而且是换成了多播(VTEP的ip本来就没有要求在同一个网段.)所以,我们首先要能获取到VNI对应的广播地址,这个主要是通过配置来完成.然后VTEP通过IGMP的方式来通告加入或者离开广播组.所以如果利用多播路由协议,可以提高广播的效率.(这么想想,其实广播的频率还是很高的.所以内核中vxlan中会有一个arp_reduce的函数,来减少广播的次数)</p>
+
+<h2>安全考虑</h2>
+
+<p>因为采用的多播的方式,当有用户恶意加入到某个多播组里,这样就能获取到所有广播的数据包内容.对于VXLAN本身带来的安全风险,可以通过3层的方式来解决,比如说IPsec.另外,有说通过对VTEP打vlan的方式来解决.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[让python webserver 能好好利用多核]]></title>
+    <link href="http://joycn.github.com/blog/2013/06/11/python-multiple-core/"/>
+    <updated>2013-06-11T22:25:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/06/11/python-multiple-core</id>
+    <content type="html"><![CDATA[<p>之前都是搞内核方面的东西,最近有个项目,要做管理端,正好,想趁机去学习下web的东西.业务方要求10Kqps.对这个没概念,又不想堆机器.就先调研了下python的框架.之前一直很喜欢web.py,因为轻量级的框架,但是传说性能很差,要靠fastcgi还提高性能.同事又推荐了tornado,大概看了下介绍,和web.py很像,很轻.(后来才知道,跟web.py很有渊源)还是异步的,不太清怎么个异步的方式.自己简单用hello,world测了下性能,单核大概有3K+的QPS.跟网上说的性能差不太多.有时间了再测下web.py之类的.开始说正题</p>
+
+<!-- more -->
+
+
+<p>看网上有介绍说用nginx做反向代理,然后跑多核的效果.性能是提升了好几倍.但数据包在本机要走两遍协议栈,感觉性能上还是有些消耗,加上cache之类的性能损失.还没测性能,就先想着自己写个模块试下效果.其实怎么滴还是要先简单实际测下,看到底会有多大的损失.</p>
+
+<p>模块写起来还比较简单,大概半天的时间初版搞定.因为没做优化,对性能还是比较忐忑的.结果试了下,还不错,12核的cpu,都利用起来了,差不多性能提高了10~11倍,基本符合预期.后续进行进一步的优化,使功能和性能都能进一步的提升.</p>
+
+<p>好久都没写东西了,乱七八糟的杂事太多了.好不容易有个清净的时候,能写个代码.还有很多事情没做,打算关注下其他的方面,算是自己视野的拓展吧.一直在底层呆着,会呆的&#8230;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[kernel_bypass]]></title>
+    <link href="http://joycn.github.com/blog/2013/04/12/kernel-bypass/"/>
+    <updated>2013-04-12T08:47:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/04/12/kernel-bypass</id>
+    <content type="html"><![CDATA[<p>现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行.主流的kernel_bypass的方案有下面这么几个:</p>
+
+<!-- more -->
+
+
+<ul>
+<li><a href="http://www.ntop.org/products/pf_ring/dna/">ntop.org DNA</a>.</li>
+<li><a href="http://info.iet.unipi.it/~luigi/netmap/">netmap.</a></li>
+<li><a href="http://www.intel.com/content/www/us/en/intelligent-systems/intel-technology/packet-processing-is-enhanced-with-software-from-intel-dpdk.html">Intel DPDK.</a></li>
+<li>Myricom <a href="https://www.myricom.com/software/sniffer10g.html">Sniffer10G</a> and <a href="https://www.myricom.com/software/dbl.html">DBL</a>.</li>
+<li>SolarFlare <a href="http://www.openonload.org/">OpenOnload</a>.</li>
+<li><a href="http://www.napatech.com/products/network_adapters.html">Napatech</a>.</li>
+</ul>
+
+
+<p>Myricom和Napatech都要用到自己特定的硬件,DNA又需要license.Napatech又需要DNA,又需要硬件.netmap是完全开源的,intel DPDK现在也开源了(网址就是www.dpdk.org).之前看过netmap的介绍,自己也简单试了下,效果没有想象的那么好,而且大部分也修改的驱动也是intel网卡的驱动.既然DPDK已经开源了,就先了解下DPDK方面的东西了.</p>
+
+<h2>总结下DPDK是如何去实现80Mpps的目标的</h2>
+
+<p>正常模式下存在的问题</p>
+
+<ul>
+<li>对于大量的网卡中断,系统已经跟不上中断的速度.</li>
+<li>对于linux进程切换的消耗.</li>
+<li>CPU的速度与PCIe速度之间的差距</li>
+<li>cache与访存的问题</li>
+<li>数据共享的问题</li>
+<li>页表的频繁更新</li>
+</ul>
+
+
+<p>对于大量中断的问题,linux原本已经做了一部分优化,就是napi,按理说应该已经可以很大的减少硬件中断带来的性能损耗.但是,并没有减少硬件中断的次数.在napi的逻辑里,在网卡中断的处理逻辑是,检查该网卡是否已经有需要处理的数据包,如果有的话,不需要再做后续的处理,napi会在处理之前的数据包的时候,把现在的数据包也一起处理了,从而减少了硬中断的工作量.但是,中断的频率并没有改变.DPDK的方法其实,就是取消中断,靠系统,去主动的polling网卡,减少中断的开销.这样,虽然在网卡闲的时候,额外功会比较多,但是在网卡忙的时候,有效功就很高了.</p>
+
+<p>对于进程切换的问题,绑定逻辑进程到固定的cpu,减少进程间的切换带来的消耗.由于处理数据包大部分的工作都交给用户态进程来做.所以,kernel<->userspace之间的切换也少了很多.而且还减少了,进程在不通cpu上切换,带来的numa相关的问题</p>
+
+<p>对于PCIe速度的差异,以及访问内存的差异.跟第一点也有一定的关系,其实通过polling,一次取数据的时候,尽可能多的取数据,减少访存的次数.对于访问内存的差异,可以通过pre-fetch的方式预取,PCIe的话,可以直接通过DDIO将数据包放到L3cache中.</p>
+
+<p>数据共享的问题,其实还是说,逻辑放到了用户态,用户可以自己去实现逻辑,通过合理的方式,减少为了保证数据一致性,使用同步机制带来的性能损耗</p>
+
+<p>页表的更新..这个,不太熟,大概还是因为说,intel通过内核huge page的方式,尽可能的减少页表的更新.后面了解下这里</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[linux tcp三次握手建立过程]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/19/three-handshakes/"/>
+    <updated>2013-03-19T08:40:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/19/three-handshakes</id>
+    <content type="html"><![CDATA[<p>连接建立请求的处理步骤主要分为两步：1，首先，将请求放入listen的socket的syn 队列中，然后发送synack等待client返回ack。2，收到用户返回的ack后检查合法性后为请求建立新的socket，然后从syn队列中移除 该请求，放到accpet队列中。</p>
+
+<!-- more -->
+
+
+<p>ipv4所有tcp包都是在tcp_v4_rcv这个函数中处理的。对于请求建立连接的数据报当然也不例外。当对包进行一系列的安全检查后，会调用 __inet_lookup_skb来查找这个数据包是否是有对应的socket进行处理。首先在ehash里查找对应的socket，如果没有的话才去listening_hash里查找连接。意思是 通过四元组，首先检查是否是已建立连接的socket，如果不是的话才检查是否是服务器listen的socket。对于建立连接的请求，肯定是在 listen_hash中可以找到。（当然，不排除是已经建立了连接，但是client之前重传的syn包）。如果没有找到对应的socket，xfrm4_policy_check函数，根据返回结构确定是否向client发送rst包。我们先暂不考虑此时sock的状态已经是time_wait的情况。后续补充。然后调用tcp_v4_do_rcv进行后续的处理。</p>
+
+<p>tcp_v4_do_rcv首先依旧是一系列的安全检查，当通过安全检查后，对于建立连接的请求，这时sock的状态应该是listen。然后调用 tcp_v4_hnd_req对数据报进行处理。首先调用inet_csk_search_req函数，看是否已经将该请求放入了syn队列中，就是本文 最开头说的第一步是否已经做了，如果做了肯定可以找到对应的request_sock，对于刚刚请求的，肯定是找不到的，然后我们继续在建立连接的 socket队列中查找，如果是已经建立了连接的（客户端重传的syn包）还要判断当前状态是否是time_wait如果是的就返回null，不是那就换回 对应的soket，如果到这时候还没找到，那么就返回原有的sock（没有找到对应的request_sock，就是没有完成本文开始说的第一步，并且没 有对这个请求建立连接）。这时返回到了tcp_v4_do_rcv函数，一般的连接请求肯定返回的还是原来的sock，所以就会进行之后的处理 tcp_rcv_state_process。这个函数主要用来处理接受方面的状态迁移，但是不包括ESTABLISHED和TIME_WAIT。对于目 前，sock的状态肯定是listen，收到syn包，那么调用icsk->icsk_af_ops->conn_request，其实对应 调用的是tcp_v4_conn_request。首先，还是要做一些检查。tcp肯定该不会处理发向多播地址或者组播地址的syn包。通过 inet_csk_reqsk_queue_is_full检查syn queue 是否已经满了(queue->listen_opt->qlen >> queue->listen_opt->max_qlen_log)，如果满的话，同时没有打开syncookie功能的话，只能drop掉该包。然后通过sk_acceptq_is_full检查接受队列是否已经满了(sk->sk_ack_backlog > sk->sk_max_ack_backlog)，并且有没有被处理过的syn（没有收到ack并且没有发生synack重传）。 如果这样的话也会drop掉这个包。通过都没问题，当然就该分配一个新的请求连接放到syn queue中去了。这过程中主要是要根据客户端发过来的数据报中的tcp options进行对新建的request_sock进行初始化。然后调用__tcp_v4_send_synack向client发送synack，并 将这个request_sock添加到syn队列中去。</p>
+
+<p>第一步完成。当client返回ack后进行第二步：</p>
+
+<p>前面跟第一步的步骤是一样的，分叉口是在进入tcp_v4_hnd_req函数后，当调用inet_csk_search_req查找半连接，肯定是可 以查到这个连接的。然后调用tcp_check_req对这个包进行检查，首先还是进行包结构的检查，检查seq号，如果和刚才的是已建立的半连接的是相 同的，那么重新发送调用req->rsk_ops->rtx_syn_ack其实也就是tcp_v4_send_synack向请求方发送一 个synack。如果ack_seq不是期望的值，那么返回当前sock，然后在tcp_rcv_state_process中返回1，调用 tcp_v4_send_reset进行相应的处理，如果该包设置了rst包或者是本机产生的包，那么我们不做处理。如果是其他的，那么我们就发送rst 包给请求方。如果window大小跟之前有很大不同，那么调用req->rsk_ops->send_ack也就是tcp_send_ack 只是单单返回一个ack。如果包的seq和之前的是一样的，那么清除TCP_FLAG_SYN位。然后检查syn和rst标志位，如果设置了，那么还是调 用tcp_v4_send_reset进行相应的处理。检查都通过 后，inet_csk(sk)->icsk_af_ops->syn_recv_sock来新建新的连接。并从syn 队列中删除对应的syn request。将新的连接添加到sock的accept队列中去。返回到tcp_v4_do_rcv中进入tcp_child_process函数确定 没有其他用户使用该新生成的连接后，如果有的话就将该连接加入到backlog中去。调用tcp_rcv_state_process。调用tcp_ack对该包进行检查，功能后面再了解，进行检查后修改连接的状态为TCP_ESTABLISHED后对该连接进行一些另外的设置。新建完成</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在使用pktgen如何利用网卡多队列功能]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/15/pktgen-multiple/"/>
+    <updated>2013-03-15T22:16:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/15/pktgen-multiple</id>
+    <content type="html"><![CDATA[<p>之前奇怪,为什么pktgen明明有QUEUE_MAP_CPU的flags,为什么使用起来还是单核的效果.今天同事说起来,说自己可以用多核.然后我也就跟着试了下.原来还真可以.只是pktgen的samples并没有提到这个(或许我看的比较老)</p>
+
+<!-- more -->
+
+
+<p>简单说下原理,涉及到网卡发送队列的一点点内容.当pktgen的脚本设置了QUEUE_MAP_CPU这个flag后,会在构造包的时候,将当前cpu的id绑定到skb的mapqueue里,这样就实现了多队列的效果.我们在insmod的时候,pktgen会根据cpu的个数来创建同等数量的线程,主要还是因为数据发送后的一些工作比较消耗CPU,这样我们绑定后,就将tx_action分配到了本地的cpu上.
+原来我们可以通过dev_name@XX的形式来为通一个设备,加同一个设备添加到多个thread上去.比如,我们有一个eth0的多队列网卡,我们可以通过pgset &#8220;add_device eth0@1&#8221;的形式,将eth0添加到某个thread上去.所以我们就可以用下面的方式将同一个网卡绑定给多个thread.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>for ((id=0;processor&lt;$CPUS;id++))
+</span><span class='line'>do
+</span><span class='line'>PGDEV=/proc/net/pktgen/kpktgend_$id 
+</span><span class='line'>pgset "add_device eth0@$processor"
+</span><span class='line'>done</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样我们就可以利用网卡的队列,利用多核来发包了.双路4核,关闭超线程的cpu用8599发包,差不多速率在12Mpps, 去年这时候的时候跟intel的人聊过,说82599差不多利用4个队列就能完成9M pps的发包速率,今天试了下,还真是,9+Mpps的速率.</p>
+
+<p>之前只改了自己一部分功能方面的代码,今天因为这个问题,看了下源码,里面的代码写的还是不错的.改天可以再去仔细的看下,毕竟以后估计要通过他来完成更多的工作</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[kernel中关于gso gro的一些内容]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/14/kernel-gro-gso/"/>
+    <updated>2013-03-14T22:42:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/14/kernel-gro-gso</id>
+    <content type="html"><![CDATA[<p>之前在lvs利用网卡gro gso功能的时候遇到了一个bug,所以就想去了解下kernel关于gro gso的实现.简单介绍网上有一大堆,这里简单介绍下</p>
+
+<!-- more -->
+
+
+<h2>offload</h2>
+
+<p>offload特性都是为了提升网络收/发性能。TSO、UFO和GSO是对应网络发送，在接收方向上对应的是LRO、GRO。</p>
+
+<p>TSO
+TSO(TCP Segmentation Offload)，是一种利用网卡对TCP数据包分片，减轻CPU负荷的一种技术，有时也被叫做 LSO (Large segment offload) ，TSO是针对TCP的，UFO是针对UDP的。如果硬件支持 TSO功能，同时也需要硬件支持的TCP校验计算和分散/聚集 (Scatter Gather) 功能。</p>
+
+<p>GSO
+GSO(Generic Segmentation Offload)，它比TSO更通用，基本思想就是尽可能的推迟数据分片直至发送到网卡驱动之前，此时会检查网卡是否支持分片功能（如TSO、UFO）, 如果支持直接发送到网卡，如果不支持就进行分片后再发往网卡。这样大数据包只需走一次协议栈，而不是被分割成几个数据包分别走，这就提高了效率。</p>
+
+<p>LRO
+LRO(Large Receive Offload)，通过将接收到的多个TCP数据聚合成一个大的数据包，然后传递给网络协议栈处理，以减少上层协议栈处理 开销，提高系统接收TCP数据包的能力。</p>
+
+<p>GRO
+GRO(Generic Receive Offload)，基本思想跟LRO类似，克服了LRO的一些缺点，更通用。后续的驱动都使用GRO的接口，而不是LRO。</p>
+
+<h2>内核的一些实现</h2>
+
+<p>其实其他的都还简单,参考下别人的文章也就了解了.之前一直没理解,收到的包,到底是怎么组织到一起的.组织的核心实现,是通过skb_gro_receive函数来完成的.
+简单说下原理,gro接收到的所有包,都是通过skb中的frag_list来管理的.当收到第一个包的时候,对新建专门新建一个数据包,来存包第一个数据包的报头信息,然后将新的数据包中的frag_list指向刚刚收到的这个数据包,然后,在后续收到的数据包的时候,就直接将新的数据包连接到frag_list的结尾.这样就通过frag_list的方式将所有的数据包就都串到了一起.
+这里就直接copy代码,然后在通过注释的方式来解释了.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">skb_gro_receive</span><span class="p">(</span><span class="k">struct</span> <span class="n">sk_buff</span> <span class="o">**</span><span class="n">head</span><span class="p">,</span> <span class="k">struct</span> <span class="n">sk_buff</span> <span class="o">*</span><span class="n">skb</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">sk_buff</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="o">*</span><span class="n">head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">sk_buff</span> <span class="o">*</span><span class="n">nskb</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">skb_shared_info</span> <span class="o">*</span><span class="n">skbinfo</span> <span class="o">=</span> <span class="n">skb_shinfo</span><span class="p">(</span><span class="n">skb</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">skb_shared_info</span> <span class="o">*</span><span class="n">pinfo</span> <span class="o">=</span> <span class="n">skb_shinfo</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">headroom</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="n">skb_gro_len</span><span class="p">(</span><span class="n">skb</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">skb_gro_offset</span><span class="p">(</span><span class="n">skb</span><span class="p">);</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">headlen</span> <span class="o">=</span> <span class="n">skb_headlen</span><span class="p">(</span><span class="n">skb</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">+</span> <span class="n">len</span> <span class="o">&gt;=</span> <span class="mi">65536</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">-</span><span class="n">E2BIG</span><span class="p">;</span>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">当第一次数据包到达的时候,*head指向的是第一个数据包的地址,而对应的frag_list为空,当第二个数据包到的时候,也就是这里处理的第一个数据包到达的时候,frag_list肯定是空的,因为gro不会处理分片的数据包,也正因为如此,所以gro才能使用frag_list.</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">frag_list</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">goto</span> <span class="n">merge</span><span class="p">;</span>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">这里的代码其实也没什么说的,就是说如果skb中headlen,小于报头的长度,就需要从page里的数据拷贝到*head里的page就好了</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">headlen</span> <span class="o">&lt;=</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">skb_frag_t</span> <span class="o">*</span><span class="n">frag</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skb_frag_t</span> <span class="o">*</span><span class="n">frag2</span><span class="p">;</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">skbinfo</span><span class="o">-&gt;</span><span class="n">nr_frags</span><span class="p">;</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">nr_frags</span> <span class="o">=</span> <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">nr_frags</span> <span class="o">+</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">offset</span> <span class="o">-=</span> <span class="n">headlen</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">nr_frags</span> <span class="o">&gt;</span> <span class="n">MAX_SKB_FRAGS</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="o">-</span><span class="n">E2BIG</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">nr_frags</span> <span class="o">=</span> <span class="n">nr_frags</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skbinfo</span><span class="o">-&gt;</span><span class="n">nr_frags</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">frag</span> <span class="o">=</span> <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">frags</span> <span class="o">+</span> <span class="n">nr_frags</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">frag2</span> <span class="o">=</span> <span class="n">skbinfo</span><span class="o">-&gt;</span><span class="n">frags</span> <span class="o">+</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">do</span> <span class="p">{</span>
+</span><span class='line'>            <span class="o">*--</span><span class="n">frag</span> <span class="o">=</span> <span class="o">*--</span><span class="n">frag2</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="o">--</span><span class="n">i</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">frag</span><span class="o">-&gt;</span><span class="n">page_offset</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">frag</span><span class="o">-&gt;</span><span class="n">size</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">skb</span><span class="o">-&gt;</span><span class="n">truesize</span> <span class="o">-=</span> <span class="n">skb</span><span class="o">-&gt;</span><span class="n">data_len</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skb</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">-=</span> <span class="n">skb</span><span class="o">-&gt;</span><span class="n">data_len</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skb</span><span class="o">-&gt;</span><span class="n">data_len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">NAPI_GRO_CB</span><span class="p">(</span><span class="n">skb</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">free</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">goto</span> <span class="n">done</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">skb_gro_len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">gso_size</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">-</span><span class="n">E2BIG</span><span class="p">;</span>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">这里就是当frag_list为空的时候,新建一个head头部来存放,数据包头部的信息</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>    <span class="n">headroom</span> <span class="o">=</span> <span class="n">skb_headroom</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">nskb</span> <span class="o">=</span> <span class="n">netdev_alloc_skb</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">dev</span><span class="p">,</span> <span class="n">headroom</span> <span class="o">+</span> <span class="n">skb_gro_offset</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">unlikely</span><span class="p">(</span><span class="o">!</span><span class="n">nskb</span><span class="p">))</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">-</span><span class="n">ENOMEM</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">__copy_skb_header</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">p</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">mac_len</span> <span class="o">=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">mac_len</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">skb_reserve</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">headroom</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">__skb_put</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">skb_gro_offset</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">skb_set_mac_header</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">skb_mac_header</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">-</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">skb_set_network_header</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">skb_network_offset</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">skb_set_transport_header</span><span class="p">(</span><span class="n">nskb</span><span class="p">,</span> <span class="n">skb_transport_offset</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">__skb_pull</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">skb_gro_offset</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">memcpy</span><span class="p">(</span><span class="n">skb_mac_header</span><span class="p">(</span><span class="n">nskb</span><span class="p">),</span> <span class="n">skb_mac_header</span><span class="p">(</span><span class="n">p</span><span class="p">),</span>
+</span><span class='line'>           <span class="n">p</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">-</span> <span class="n">skb_mac_header</span><span class="p">(</span><span class="n">p</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">*</span><span class="n">NAPI_GRO_CB</span><span class="p">(</span><span class="n">nskb</span><span class="p">)</span> <span class="o">=</span> <span class="o">*</span><span class="n">NAPI_GRO_CB</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">如果frag_list为null,那么,我就把head放到frag_list.然后将新的指针做为head,并把head-&gt;pre记录frag_list中的最后一个,用于后续再来包的话,直接添加到pre-&gt;next就好了.这样就直接连到了frag_list的最后</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>    <span class="n">skb_shinfo</span><span class="p">(</span><span class="n">nskb</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">frag_list</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">skb_shinfo</span><span class="p">(</span><span class="n">nskb</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">gso_size</span> <span class="o">=</span> <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">gso_size</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">pinfo</span><span class="o">-&gt;</span><span class="n">gso_size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">skb_header_release</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">prev</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">data_len</span> <span class="o">+=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">len</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">truesize</span> <span class="o">+=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">len</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">+=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">len</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">*</span><span class="n">head</span> <span class="o">=</span> <span class="n">nskb</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">nskb</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">p</span> <span class="o">=</span> <span class="n">nskb</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">merge:</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="n">headlen</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">eat</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">headlen</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">skbinfo</span><span class="o">-&gt;</span><span class="n">frags</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">page_offset</span> <span class="o">+=</span> <span class="n">eat</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skbinfo</span><span class="o">-&gt;</span><span class="n">frags</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">size</span> <span class="o">-=</span> <span class="n">eat</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skb</span><span class="o">-&gt;</span><span class="n">data_len</span> <span class="o">-=</span> <span class="n">eat</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">skb</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">-=</span> <span class="n">eat</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">offset</span> <span class="o">=</span> <span class="n">headlen</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">__skb_pull</span><span class="p">(</span><span class="n">skb</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">prev</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">skb</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">prev</span> <span class="o">=</span> <span class="n">skb</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">skb_header_release</span><span class="p">(</span><span class="n">skb</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">done:</span>
+</span><span class='line'>    <span class="n">NAPI_GRO_CB</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">data_len</span> <span class="o">+=</span> <span class="n">len</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">truesize</span> <span class="o">+=</span> <span class="n">len</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">p</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">+=</span> <span class="n">len</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">NAPI_GRO_CB</span><span class="p">(</span><span class="n">skb</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">same_flow</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其他地方的逻辑,代码很容易看明白的.</p>
+
+<p>不过问题似乎不是出在这里,后面在把gso的内容给补充下</p>
+
+<p>临了了抱怨句,白天看代码效率真低,半天没能去静下心来看这里的代码,晚上看了一会就明白里面的意思了.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[quilt&guilt介绍]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/10/learning-quilt/"/>
+    <updated>2013-03-10T19:00:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/10/learning-quilt</id>
+    <content type="html"><![CDATA[<p>前两天大表哥给介绍了下quilt,发现这个东西还真是蛮好用的.哎,先感叹下,不在那个圈子里,路子果然太野了,效率也太低了.要尝试着去关注下这个.</p>
+
+<!-- more -->
+
+
+<p>先介绍下quilt,quilt是Andrew Morton最初用来维护linux kernel memory子系统的.其实quilt就是用来管理patch的.我们可以pop或者push patch到源码中去,用简单的方式来管理我们的patch.这些话都是比较虚的,从那天大表哥那介绍到的,我感觉最大的好处,还真就是管理patches很方便.传统,比如我们用git来做版本管理,当我们开发了一个新的功能的patch,然后我们去做后续的内容,但是过了好久,我们突然发现,这个patch有bug,我们就要去修改这个功能,这时,版本号还是在增加,我们就会对patch的管理很麻烦.毕竟同一个功能的一个patch,我们不能很清楚的找到他所有的修改信息.当然quilt也不能替代git来做版本管理,因为它并不记录到底我们做过什么样的修改.(所以就又出现了guilt)</p>
+
+<p>下面来介绍下quilt的用法(其实就是翻译的老外的文章)</p>
+
+<p>以2.6.32的kernel为例</p>
+
+<p>进入到kernel的主目录后,我们先新建一个patches的目录,用于存放我们的patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mkdir patches
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们要告诉quilt我们新创建了一个名为patch1的patch,patch1就是用来管理这个patch内容的一个名字.并不是说真的生成一个文件.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt new patch1
+</span><span class='line'>Patch patches/patch1 is now on top
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这时候我们通过cat patches/series 就发现多了一行patch1的内容.</p>
+
+<p>quilt需要我们告诉他,在这个新的patch中,我们都修改了那些内容.通过以下这个命令来完成这个功能.比如说我要修改ipvs相关的内容,拿net/netfilter/ipvs/ip_vs_conn.c为例.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt add net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>File Makefile added to patch patches/patch1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当我们修改了这个文件后,我们需要告诉quilt来更新这个patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> quilt refresh
+</span><span class='line'>Refreshed patch patches/patch1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个时候,patches/patch1就会是一个你这次所有更改信息的的一个patch</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span> cat patches/patch1
+</span><span class='line'>
+</span><span class='line'>Index: linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'><span class="o">===================================================================</span>
+</span><span class='line'>--- linux-2.6.32-220.el6.x86_64.orig/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>+++ linux-2.6.32-220.el6.x86_64/net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>@@ -22,6 +22,8 @@
+</span><span class='line'>  *
+</span><span class='line'>  */
+</span><span class='line'>
+</span><span class='line'>+
+</span><span class='line'>+
+</span><span class='line'> <span class="c">#define KMSG_COMPONENT &quot;IPVS&quot;</span>
+</span><span class='line'> <span class="c">#define pr_fmt(fmt) KMSG_COMPONENT &quot;: &quot; fmt</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们就可以继续修改这个patch,或者说,如果我们觉得这个patch的功能完成了,我们想修改其他的内容,我们可以再新建一个新的patch,比如patch2.这个就是按着patch的先后顺序来的.如果我们想看,现在所有的patch,那么,我们可以通过以下命令来查看,为了方便起见,我又新加了一个patch,好对下面这个命令进行说明</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt series -v
+</span><span class='line'>+ patches/patch1
+</span><span class='line'><span class="o">=</span> patches/patch2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This output shows that all three patches are applied, and that the current one is patch3.
+从上面的命令可以看出来,现在我们有两个patch.当前的操作的patch是patch2</p>
+
+<p>If a new kernel version is released, and you wish to port your changes to the new version, quilt can handle this easily with the following steps:
+如果新版本的kernel发布了.我们想把我们的patch应用到新的版本里,quilt也可以帮我们.</p>
+
+<p>首先,我们需要把我们所有的patch全部pop出来.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt pop -a
+</span><span class='line'>Patch patches/patch2 appears to be empty, removing
+</span><span class='line'>
+</span><span class='line'>Removing patch patches/patch1
+</span><span class='line'>Restoring net/netfilter/ipvs/ip_vs_conn.c
+</span><span class='line'>
+</span><span class='line'>No patches applied
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们把patches文件,拷贝到新的内核目录下.然后执行quilt push来为新版本内核打patch(一次push只打一个patch)</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>quilt push
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果对应的文件没有什么大的变化(就是不影响我们的patch,那么就会直接patch成功,如果不成功,那么就需要我们使用-f参数,然后手动的去修改区别的地方)</p>
+
+<p>当我们手动修改完后,需要再次quilt refresh来更新patch.</p>
+
+<p>quilt also has options that will automatically email out all of the patches in the series to a group of people or a mailing list, delete specific patches in the middle of the series, go up or down the series of patches until a specific patch is found, and many more powerful options.quilt还可以帮我们把patch自动的发送email给别人.或者删除几个patch中的中间几个等其他的功能.如果我们想做kernel相关的开发,quilt是一个很好用的工具,你不用自己去diff,做patch,从而开发变得简单,就如大表哥说的,这个是提高生产力的工具.</p>
+
+<p>更多的命令还是通过man来查看吧,写的很详细</p>
+
+<p>实际用起来的时候发现没有版本控制还是很费劲的,所以又出了一个跟git结合的脚本工具,就是guilt.guilt用起来会相对舒服很多,因为有git的版本控制功能了.可以man查看下</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[有关linux kernel timer的问题]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/08/kernel-timer/"/>
+    <updated>2013-03-08T22:59:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/08/kernel-timer</id>
+    <content type="html"><![CDATA[<p>最近在做优化时,发现居然是在linux kernel timer的使用方面造成的性能瓶颈.</p>
+
+<p>于是顺便就查了下,目前2.6内核中有关timer的一点简单介绍.</p>
+
+<p>之前一直想当然以为说硬件发出的时间中断请求,跟其他的请求一样,只能被某一个CPU处理.没想过这个问题,然后最近在做优化的时候,突然意识到代码里用了太多的timer,而所有cpu在softirq上的消耗居然差不多.然后觉得似乎不是自己想的那样.然后就去网上查了下资料.发现自己还真理解错了</p>
+
+<!-- more -->
+
+
+<h2>硬件中断的一些内容</h2>
+
+<p>Linux启动过程中有一步是调用函数init_IRQ，作用是初始化各个中断向量。</p>
+
+<p>init_IRQ中，调用set_intr_gate(unsigned int n, void *addr)函数注册中断向量，n表示中断向量号，addr是中断响应函数的名字（地址）。</p>
+
+<p>各种跟SMP相关的中断的入口函数是基本相同的，Linux提供了BUILD_INTERRUPT(x,v)宏来完成中断入口函数的定义和中断响应函数的声明,x是中断响应函数的名字，v是中断向量号。中断入口函数名是sys_前缀加上入口函数的名字，如：apic_timer_interrupt是时钟中断响应函数，对应的入口函数是smp_apic_timer_interrupt。</p>
+
+<p>先这么介绍吧,太硬件的东西这里不深入了解了</p>
+
+<p>现在硬件时钟中断的产生,主要是通过PIT或者HPET来产生.这种硬件中断只能被cpu0来处理.中断号为0.这个中断的对应的处理函数是timer_interrupt.主要功能是做一些变量值的更新(这个先不关心,主要关心的是kernel中timer是怎么回事,所以这里先忽略)然后调用do_timer_interrupt函数来更新jiffies_64以及更新系统时间.然后SMP会调到smp_apic_timer_interrupt这个函数.smp_local_timer_interrupt这个函数就是关于per cpu timer处理的函数.smp_local_timer_interrupt中的update_process_times函数主要就是来检查当前进程运行了多久,然后调用raise_softirq来让本地CPU来处理time软中断.对应的处理函数就是run_timer_softirq.这个是我们这里主要关注的地方.然后If some old version of an RCU-protected data structure has to be reclaimed, checks
+whether the local CPU has gone through a quiescent state and invokes
+tasklet_schedule( ) to activate the rcu_tasklet tasklet of the local CPU,再scheduler_tick减少当前进程的时间片,并且检查时间片是否已经耗光了.</p>
+
+<h2>软中断以及timer_list</h2>
+
+<p>终于到今天关注的重点了.timer_list相关的内容:</p>
+
+<p>timer_list的一些函数这里就不介绍了,用了都知道.</p>
+
+<p>里面肯定涉及到一个time时间的比较,这里我们说时刻a在时刻b之后，就意味着时间值a≥b。Linux强烈推荐用户使用它所定义的下列4个.为什么呢?因为涉及到jiffies溢出的问题,因为jiffies是一个32位的变量,所以还是很容易溢出的,当溢出了,比较起来肯定会有问题的,所以,内核就用定义了一下几个宏.其实就是类型转化成有符号long型,然后直接做比较(毕竟溢出后,负数就变成正数了,肯定比较起来没问题的,不过.溢出很多,轮一圈当然就比较不出来了.)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#define time_after(a,b) ((long)(b) - (long)(a) &lt; 0)
+</span><span class='line'>#define time_before(a,b) time_after(b,a)
+</span><span class='line'>#define time_after_eq(a,b) ((long)(a) - (long)(b) >= 0)
+</span><span class='line'>#define time_before_eq(a,b) time_after_eq(b,a)</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>动态内核定时器机制的原理</h3>
+
+<p>Linux是怎样为其内核定时器机制提供动态扩展能力的呢？其关键就在于“定时器向量”的概念。所谓“定时器向量”就是指这样一条双向循环定时器队列（对列中的每一个元素都是一个timer_list结构）：对列中的所有定时器都在同一个时刻到期，也即对列中的每一个timer_list结构都具有相同的expires值。显然，可以用一个timer_list结构类型的指针来表示一个定时器向量。显然，定时器expires成员的值与jiffies变量的差值决定了一个定时器将在多长时间后到期。在32位系统中，这个时间差值的最大值应该是0xffffffff。因此如果是基于“定时器向量”基本定义，内核将至少要维护0xffffffff个timer_list结构类型的指针，这显然是不现实的。另一方面，从内核本身这个角度看，它所关心的定时器显然不是那些已经过期而被执行过的定时器（这些定时器完全可以被丢弃），也不是那些要经过很长时间才会到期的定时器，而是那些当前已经到期或者马上就要到期的定时器（注意！时间间隔是以滴答次数为计数单位的）。基于上述考虑，并假定一个定时器要经过interval个时钟滴答后才到期（interval＝expires－jiffies），则Linux采用了下列思想来实现其动态内核定时器机制：对于那些0≤interval≤255的定时器，Linux严格按照定时器向量的基本语义来组织这些定时器，也即Linux内核最关心那些在接下来的255个时钟节拍内就要到期的定时器，因此将它们按照各自不同的expires值组织成256个定时器向量。而对于那些256≤interval≤0xffffffff的定时器，由于他们离到期还有一段时间，因此内核并不关心他们，而是将它们以一种扩展的定时器向量语义（或称为“松散的定时器向量语义”）进行组织。所谓“松散的定时器向量语义”就是指：各定时器的expires值可以互不相同的一个定时器队列。具体的组织方案可以分为两大部分</p>
+
+<p>（1）对于内核最关心的、interval值在［0，255］之间的前256个定时器向量，内核是这样组织它们的：这256个定时器向量被组织在一起组成一个定时器向量数组，并作为数据结构timer_vec_root的一部分，该数据结构定义在kernel/timer.c文件中，如下述代码段所示：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*
+</span><span class='line'> * per-CPU timer vector definitions:
+</span><span class='line'> */    
+</span><span class='line'>#define TVN_BITS (CONFIG_BASE_SMALL ? 4 : 6)
+</span><span class='line'>#define TVR_BITS (CONFIG_BASE_SMALL ? 6 : 8)
+</span><span class='line'>#define TVN_SIZE (1 &lt;&lt; TVN_BITS)
+</span><span class='line'>#define TVR_SIZE (1 &lt;&lt; TVR_BITS)
+</span><span class='line'>#define TVN_MASK (TVN_SIZE - 1)
+</span><span class='line'>#define TVR_MASK (TVR_SIZE - 1)
+</span><span class='line'>
+</span><span class='line'>struct tvec {
+</span><span class='line'>    struct list_head vec[TVN_SIZE];            
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>struct tvec_root {
+</span><span class='line'>    struct list_head vec[TVR_SIZE];    
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>struct tvec_base {
+</span><span class='line'>    spinlock_t lock;
+</span><span class='line'>    struct timer_list *running_timer;
+</span><span class='line'>    unsigned long timer_jiffies;   
+</span><span class='line'>    unsigned long next_timer; 
+</span><span class='line'>    struct tvec_root tv1;     
+</span><span class='line'>    struct tvec tv2;
+</span><span class='line'>    struct tvec tv3;
+</span><span class='line'>    struct tvec tv4;
+</span><span class='line'>    struct tvec tv5;
+</span><span class='line'>} ____cacheline_aligned;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基于数据结构timer_vec_root，Linux定义了一个全局变量tv1，以表示内核所关心的前256个定时器向量。这样内核在处理是否有到期定时器时，它就只从定时器向量数组tv1.vec［256］中的某个定时器向量内进行扫描。而tv1的index字段则指定当前正在扫描定时器向量数组tv1.vec［256］中的哪一个定时器向量，也即该数组的索引，其初值为0，最大值为255（以256为模）。每个时钟节拍时index字段都会加1。显然，index字段所指定的定时器向量tv1.vec［index］中包含了当前时钟节拍内已经到期的所有动态定时器。而定时器向量tv1.vec［index＋k］则包含了接下来第k个时钟节拍时刻将到期的所有动态定时器。当index值又重新变为0时，就意味着内核已经扫描了tv1变量中的所有256个定时器向量。在这种情况下就必须将那些以松散定时器向量语义来组织的定时器向量补充到tv1中来。</p>
+
+<p>（2）而对于内核不关心的、interval值在［0xff，0xffffffff］之间的定时器，它们的到期紧迫程度也随其interval值的不同而不同。显然interval值越小，定时器紧迫程度也越高。因此在将它们以松散定时器向量进行组织时也应该区别对待。通常，定时器的interval值越小，它所处的定时器向量的松散度也就越低（也即向量中的各定时器的expires值相差越小）；而interval值越大，它所处的定时器向量的松散度也就越大（也即向量中的各定时器的expires值相差越大）。内核规定，对于那些满足条件：0x100≤interval≤0x3fff的定时器，只要表达式（interval>>8）具有相同值的定时器都将被组织在同一个松散定时器向量中。因此，为组织所有满足条件0x100≤interval≤0x3fff的定时器，就需要26＝64个松散定时器向量。同样地，为方便起见，这64个松散定时器向量也放在一起形成数组，并作为数据结构timer_vec的一部分。基于数据结构timer_vec，Linux定义了全局变量tv2，来表示这64条松散定时器向量。如上述代码段所示。对于那些满足条件0x4000≤interval≤0xfffff的定时器，只要表达式（interval>>8＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000≤interval≤0xfffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv3全局变量来表示这64个松散定时器向量。对于那些满足条件0x100000≤interval≤0x3ffffff的定时器，只要表达式（interval>>8＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x100000≤interval≤0x3ffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv4全局变量来表示这64个松散定时器向量。对于那些满足条件0x4000000≤interval≤0xffffffff的定时器，只要表达式（interval>>8＋6＋6＋6）的值相同的定时器都将被放在同一个松散定时器向量中。同样，要组织所有满足条件0x4000000≤interval≤0xffffffff的定时器，也需要26＝64个松散定时器向量。类似地，这64个松散定时器向量也可以用一个timer_vec结构来描述，相应地Linux定义了tv5全局变量来表示这64个松散定时器向量。最后，为了引用方便，Linux定义了一个指针数组tvecs[]，来分别指向tv1、tv2、…、tv5结构变量。如上述代码所示。</p>
+
+<h2>内核动态定时器机制的实现</h2>
+
+<p>在内核动态定时器机制的实现中，有三个操作时非常重要的：</p>
+
+<p>（1）将一个定时器插入到它应该所处的定时器向量中。</p>
+
+<p>（2）定时器的迁移，也即将一个定时器从它原来所处的定时器向量迁移到另一个定时器向量中。</p>
+
+<p>（3）扫描并执行当前已经到期的定时器。</p>
+
+<h3>动态定时器机制的初始化</h3>
+
+<p>函数init_timers_cpu()实现对动态定时器机制的初始化。由于2.6以后,tvec_base变成了percpu的数据类型,所以就要对在cpu处于CPU_UP_PREPARE_FROZEN状态的时候对相应的数据结构进行初始化.</p>
+
+<h3>动态定时器的时钟滴答基准timer_jiffies</h3>
+
+<p>由于动态定时器是在时钟中断的Bottom Half中被执行的，而从TIMER_SOFTIRQ向量被激活到其run_timer_softirq()函数真正执行这段时间内可能会有几次时钟中断发生。因此内核必须记住上一次运行定时器机制是什么时候，也即内核必须保存上一次运行定时器机制时的jiffies值。为此，Linux在kernel/timer.c文件中定义了全局变量timer_jiffies来表示上一次运行定时器机制时的jiffies值。在run_timer_softirq中,首先检查jiffies是否大于timer_jiffies,只有大于timer_jiffies的时候,才会调用__run_timers函数(这个函数真正处理timer的函数)</p>
+
+<h3>定时器迁移操作</h3>
+
+<p>由于一个定时器的interval值会随着时间的不断流逝（即jiffies值的不断增大）而不断变小，因此那些原本到期紧迫程度较低的定时器会随着jiffies值的不断增大而成为既把马上到期的定时器。比如定时器向量tv2.vec[0]中的定时器在经过256个时钟滴答后会成为未来256个时钟滴答内会到期的定时器。因此，定时器在内核动态定时器链表中的位置也应相应地随着改变。改变的规则是：当tv1.index重新变为0时（意味着tv1中的256个定时器向量都已被内核扫描一遍了，从而使tv1中的256个定时器向量变为空），则用tv2.vec［index］定时器向量中的定时器去填充tv1，同时使tv2.index加1（它以64为模）。当tv2.index重新变为0（意味着tv2中的64个定时器向量都已经被全部填充到tv1中去了，从而使得tv2变为空），则用tv3.vec［index］定时器向量中的定时器去填充tv2。如此一直类推下去，直到tv5。函数cascade_timers()完成这种定时器迁移操作，该函数只有一个timer_vec结构类型指针的参数tv。</p>
+
+<h3>__run_timers</h3>
+
+<p>这个函数会把上次执行time 软中断到目前所有的超时函数都运行一遍.通过两个while循环来完成,外面的循环,每次执行每个tick里所有的超时函数,里面的循环执行一个tick里的每个超时函数</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[关于vrrp的一点启发]]></title>
+    <link href="http://joycn.github.com/blog/2013/03/05/something-about-vrrp/"/>
+    <updated>2013-03-05T23:31:00+08:00</updated>
+    <id>http://joycn.github.com/blog/2013/03/05/something-about-vrrp</id>
+    <content type="html"><![CDATA[<p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,<!-- more -->由于安全的考虑,一般交换机上都对arp做了限速.所以当vrrp跑的vip特别多的话,就会出现一个问题.并不是所有的arp的mac地址都做了更新.(因为有一部分arp被丢弃了.)所以这样就会有一部分流量还是会转发给原来的服务器而造成流量丢失.
+今天跟同事讨论起来这个事情.告诉我一个比较好的办法来解决.就是在主备服务器上,都在loopback上把vip配上.然后在交换机上,通过路由的方式,将包转发到对应的服务器上.比如说主备都通过vrrp配一个10.15.0.51的vip.然后当主服务器down掉后,备机只要发送一个Gratuitous ARP就可以接管10.15.0.51这个vip.这样,后续的发给vip的数据包都会通过路由的形式转发到备服务器上.
+这样做的好处就是,不仅解决了Gratuitous ARP在很多的情况下,被服务器过滤的问题.而且当主备切换时,只会有一个Gratuitous ARP发出.同时在服务器上启动的vip也只有这么一个.即使在主备频繁抖动的情况下,对网络的影响依旧很小.</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[start]]></title>
     <link href="http://joycn.github.com/blog/2013/03/05/start/"/>
-    <updated>2013-03-05T23:31:00+08:00</updated>
+    <updated>2013-03-05T13:31:00+08:00</updated>
     <id>http://joycn.github.com/blog/2013/03/05/start</id>
     <content type="html"><![CDATA[<p>终于有了自己的Octopress blog了，按着网上的教程一步一步走过来了。由于自己本身对git不熟，所以在安装过程中还是遇到点问题的。记录下，万一有跟我一样的人遇到相同的问题呢。</p>
 
@@ -44,17 +1699,6 @@
 <p>第一篇blog完全成了吐槽贴。因为windows编码是GBK的问题，在new_post的时候，老是报错。然后想，总不能每次new_post的时候输入英文名字，然后再去里面改titile。想在服务器上再搞一套这东西，后来想，因为个博客，搞套这个东西太折腾，而且使用起来也不是很方便。然后向想一个比较“优雅”的办法。于是开始把cmd的默认字符集改成了utf-8，结果发现输入法又不能输入汉字了。然后想着找bash for windows之类的东西，结果还是失败了。最后想了想，擦。最简单的方式，就是自己写个python脚本，然后把字符转化下就好了。一行代码的事情。结果搞完了，发现生成的markdown文件名居然是拼音。。擦。。这么折腾下，发现也就是方便了我不用自己手动改titile。</p>
 
 <p>顺便说下markdown编辑的问题，看起来很难，其实还好。写起来看起来很geek，但是由于我只是写blog，其他地方基本不会用，所以还是找个顺手的工具帮忙来定义格式之类的比较简单。markdownpad不错，但是就是对中文输入法的支持有点烂。先这么用着，有适合的再换~</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[关于vrrp的一点启发]]></title>
-    <link href="http://joycn.github.com/blog/2013/03/05/something-about-vrrp/"/>
-    <updated>2013-03-05T23:31:00+08:00</updated>
-    <id>http://joycn.github.com/blog/2013/03/05/something-about-vrrp</id>
-    <content type="html"><![CDATA[<p>之前lvs用的时候都是跑集群模式.对于主备模式基本没怎么研究过.这两天跑nat网关的时候,由于公司的量不大,就决定直接用主备模式了.但是因为之前keepalived不支持vmac,所以在主备切换的时候,是由备机,主动发起Gratuitous ARP来通告交换机说,vip对应的mac已经发生变化.但是这样有一个问题,<!-- more -->由于安全的考虑,一般交换机上都对arp做了限速.所以当vrrp跑的vip特别多的话,就会出现一个问题.并不是所有的arp的mac地址都做了更新.(因为有一部分arp被丢弃了.)所以这样就会有一部分流量还是会转发给原来的服务器而造成流量丢失.
-今天跟同事讨论起来这个事情.告诉我一个比较好的办法来解决.就是在主备服务器上,都在loopback上把vip配上.然后在交换机上,通过路由的方式,将包转发到对应的服务器上.比如说主备都通过vrrp配一个10.15.0.51的vip.然后当主服务器down掉后,备机只要发送一个Gratuitous ARP就可以接管10.15.0.51这个vip.这样,后续的发给vip的数据包都会通过路由的形式转发到备服务器上.
-这样做的好处就是,不仅解决了Gratuitous ARP在很多的情况下,被服务器过滤的问题.而且当主备切换时,只会有一个Gratuitous ARP发出.同时在服务器上启动的vip也只有这么一个.即使在主备频繁抖动的情况下,对网络的影响依旧很小.</p>
 ]]></content>
   </entry>
   

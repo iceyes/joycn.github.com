@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>kernel_bypass - iCen DiaMondinG</title>
+  <meta name="author" content="joycn">
+
+  
+  <meta name="description" content="现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://joycn.github.com/blog/2013/04/12/kernel-bypass/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="iCen DiaMondinG" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">iCen DiaMondinG</a></h1>
+  
+    <h2>不积跬步, 无以至千里</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:joycn.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/aboutme">AboutMe</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Kernel_bypass</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T08:47:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+ 	
+      | <a href="#comments">Comments</a>
+     
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>现在10Gbe网卡现在已经比较通用了,目前40Gbe的网卡也已经出来一段时间了.随着网卡的不断发展,系统网络栈的设计,越来越成为数据包处理的瓶颈.这不仅有系统的问题,也跟特定的应用有关,毕竟有的应用用不到太多内核中相关的过于复杂的设计.现在kernel_bypass也变得越来越流行.主流的kernel_bypass的方案有下面这么几个:</p>
+
+<!-- more -->
+
+
+<ul>
+<li><a href="http://www.ntop.org/products/pf_ring/dna/">ntop.org DNA</a>.</li>
+<li><a href="http://info.iet.unipi.it/~luigi/netmap/">netmap.</a></li>
+<li><a href="http://www.intel.com/content/www/us/en/intelligent-systems/intel-technology/packet-processing-is-enhanced-with-software-from-intel-dpdk.html">Intel DPDK.</a></li>
+<li>Myricom <a href="https://www.myricom.com/software/sniffer10g.html">Sniffer10G</a> and <a href="https://www.myricom.com/software/dbl.html">DBL</a>.</li>
+<li>SolarFlare <a href="http://www.openonload.org/">OpenOnload</a>.</li>
+<li><a href="http://www.napatech.com/products/network_adapters.html">Napatech</a>.</li>
+</ul>
+
+
+<p>Myricom和Napatech都要用到自己特定的硬件,DNA又需要license.Napatech又需要DNA,又需要硬件.netmap是完全开源的,intel DPDK现在也开源了(网址就是www.dpdk.org).之前看过netmap的介绍,自己也简单试了下,效果没有想象的那么好,而且大部分也修改的驱动也是intel网卡的驱动.既然DPDK已经开源了,就先了解下DPDK方面的东西了.</p>
+
+<h2>总结下DPDK是如何去实现80Mpps的目标的</h2>
+
+<p>正常模式下存在的问题</p>
+
+<ul>
+<li>对于大量的网卡中断,系统已经跟不上中断的速度.</li>
+<li>对于linux进程切换的消耗.</li>
+<li>CPU的速度与PCIe速度之间的差距</li>
+<li>cache与访存的问题</li>
+<li>数据共享的问题</li>
+<li>页表的频繁更新</li>
+</ul>
+
+
+<p>对于大量中断的问题,linux原本已经做了一部分优化,就是napi,按理说应该已经可以很大的减少硬件中断带来的性能损耗.但是,并没有减少硬件中断的次数.在napi的逻辑里,在网卡中断的处理逻辑是,检查该网卡是否已经有需要处理的数据包,如果有的话,不需要再做后续的处理,napi会在处理之前的数据包的时候,把现在的数据包也一起处理了,从而减少了硬中断的工作量.但是,中断的频率并没有改变.DPDK的方法其实,就是取消中断,靠系统,去主动的polling网卡,减少中断的开销.这样,虽然在网卡闲的时候,额外功会比较多,但是在网卡忙的时候,有效功就很高了.</p>
+
+<p>对于进程切换的问题,绑定逻辑进程到固定的cpu,减少进程间的切换带来的消耗.由于处理数据包大部分的工作都交给用户态进程来做.所以,kernel<->userspace之间的切换也少了很多.而且还减少了,进程在不通cpu上切换,带来的numa相关的问题</p>
+
+<p>对于PCIe速度的差异,以及访问内存的差异.跟第一点也有一定的关系,其实通过polling,一次取数据的时候,尽可能多的取数据,减少访存的次数.对于访问内存的差异,可以通过pre-fetch的方式预取,PCIe的话,可以直接通过DDIO将数据包放到L3cache中.</p>
+
+<p>数据共享的问题,其实还是说,逻辑放到了用户态,用户可以自己去实现逻辑,通过合理的方式,减少为了保证数据一致性,使用同步机制带来的性能损耗</p>
+
+<p>页表的更新..这个,不太熟,大概还是因为说,intel通过内核huge page的方式,尽可能的减少页表的更新.后面了解下这里</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">joycn</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-12T08:47:00+08:00" pubdate data-updated="true">Apr 12<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/kernel/'>kernel</a>, <a class='category' href='/blog/categories/networking/'>networking</a>
+  
+</span>
+
+
+    </p>
+    
+      ﻿<div class="sharing">
+  
+  <script type="text/javascript" charset="utf-8">
+(function(){
+  var _w = 90 , _h = 24;
+  var param = {
+    url:location.href,
+    type:'2',
+    count:'1', /**是否显示分享数，1显示(可选)*/
+    appkey:'', /**您申请的应用appkey,显示分享来源(可选)*/
+    title:'', /**分享的文字内容(可选，默认为所在页面的title)*/
+    pic:'', /**分享图片的路径(可选)*/
+    ralateUid:'2408658977', /**关联用户的UID，分享微博会@该用户(可选)*/
+	language:'zh_cn', /**设置语言，zh_cn|zh_tw(可选)*/
+    rnd:new Date().valueOf()
+  }
+  var temp = [];
+  for( var p in param ){
+    temp.push(p + '=' + encodeURIComponent( param[p] || '' ) )
+  }
+  document.write('<iframe allowTransparency="true" frameborder="0" scrolling="no" src="http://hits.sinajs.cn/A1/weiboshare.html?' + temp.join('&') + '" width="'+ _w+'" height="'+_h+'"></iframe>')
+})()
+</script>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/03/19/three-handshakes/" title="Previous Post: linux tcp三次握手建立过程">&laquo; linux tcp三次握手建立过程</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/06/11/python-multiple-core/" title="Next Post: 让python webserver 能好好利用多核">让python webserver 能好好利用多核 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite">﻿<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread"></div>
+<script type="text/javascript">
+var duoshuoQuery = {short_name:"joycn"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = 'http://static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		|| document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+<!-- Duoshuo Comment END --></div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/lvs/">lvs总结</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/07/career/">半年的回顾</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/06/ethtool-with-fdir/">ethtool with fdir</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/12/01/go-start/">golang中的channel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/18/coding-style/">编码风格</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/networking/'>Networking (1)</a></li>
+<li class='category'><a href='/blog/categories/career/'>career (1)</a></li>
+<li class='category'><a href='/blog/categories/channel/'>channel (1)</a></li>
+<li class='category'><a href='/blog/categories/develop/'>develop (1)</a></li>
+<li class='category'><a href='/blog/categories/golang/'>golang (1)</a></li>
+<li class='category'><a href='/blog/categories/kernel/'>kernel (7)</a></li>
+<li class='category'><a href='/blog/categories/lvs/'>lvs (1)</a></li>
+<li class='category'><a href='/blog/categories/networking/'>networking (2)</a></li>
+<li class='category'><a href='/blog/categories/nic/'>nic (1)</a></li>
+<li class='category'><a href='/blog/categories/openflow/'>openflow (1)</a></li>
+<li class='category'><a href='/blog/categories/python/'>python (1)</a></li>
+<li class='category'><a href='/blog/categories/sdn/'>sdn (1)</a></li>
+<li class='category'><a href='/blog/categories/tcp/'>tcp (1)</a></li>
+<li class='category'><a href='/blog/categories/virtualization/'>virtualization (1)</a></li>
+<li class='category'><a href='/blog/categories/web/'>web (1)</a></li>
+<li class='category'><a href='/blog/categories/工作习惯/'>工作习惯 (1)</a></li>
+<li class='category'><a href='/blog/categories/运维/'>运维 (1)</a></li>
+<li class='category'><a href='/blog/categories/随笔/'>随笔 (1)</a></li>
+
+  </ul>
+</section>
+
+
+
+
+﻿<section>
+<h1>Recent Comments</h1>
+<ul class="ds-recent-comments" data-num-items="10" data-show-avatars="0" data-show-time="0" data-show-title="0" data-show-admin="0" data-excerpt-length="18"></ul>
+
+</section><section>       
+<h1>Flag Counter</h1>       
+<a href="http://info.flagcounter.com/E7Jp"><img src="http://s04.flagcounter.com/mini/E7Jp/bg_FFFFFF/txt_000000/border_CCCCCC/flags_0/" alt="Flag Counter" border="0"></a>
+</section> 
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - joycn -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'joycn';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://joycn.github.com/blog/2013/04/12/kernel-bypass/';
+        var disqus_url = 'http://joycn.github.com/blog/2013/04/12/kernel-bypass/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
